@@ -1,0 +1,418 @@
+\documentclass[conference]{IEEEtran}
+% Add the compsoc option for Computer Society conferences.
+%
+% If IEEEtran.cls has not been installed into the LaTeX system files,
+% manually specify the path to it like:
+% \documentclass[conference]{../sty/IEEEtran}
+
+\pagestyle{plain}
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algpseudocode} % changed from &&&& 
+\usepackage{algorithm} % changed from &&&& 
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url} % to enable usage of long URLs ion the bib (otherwise they escape the line)
+\usepackage{csvsimple}
+\usepackage{tabularx}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    allcolors=.,
+    urlcolor=blue,
+}
+
+\title{Hardware Transmitter Fingerprinting in the ARINC 429 Avionic Bus}
+%\author{Avishai Wool, Nimrod Gilboa Markevich}
+\author{Anonymous}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    bla
+    
+    e.g., 
+    
+    i.e.,
+    
+    etc.,
+    
+    et al.\ said
+    
+\end{abstract}
+
+
+\section{Introduction}
+  \color{gray}
+  We propose an intruder detection algorithm for the ARINC 429 data bus, that bases its decisions solely based on the analog properties of the transmitter, receiver(s) and bus topology.
+  \color{black}
+
+\subsection{Motivation}
+  \color{gray}
+  Advantage 1: ...Of course, the attacker is aware of the possibility of a cyber defence systems monitoring the communication on the bus. As a countermeasure, he (they?) will attempt to mask the offensive data as data naturally occurring in the system. This type of operation is meant to make it hard for defence systems to detect intruders solely based on the digital data. Advantage 2: (Is it true to say, that other algorithms require a sequence of words, while ours can make a decision based on a single word? Maybe other systems can do that too, or maybe our system should use more than one word for robustness?)
+  \color{black}
+
+\subsection{Related Work}
+
+\color{gray}
+hardware fingerprinting ethernet
+
+\cite{kneib2018scission}
+\color{black}
+
+
+\subsection{Contributions}
+
+\section{Preliminaries}
+% stuff we didn't invent or discover but the reader needs to know
+\subsection{The ARINC 429 Standard}
+  ARINC Specification 429, also named ``Mark 33 Digital Transfer System (DITS)'', is a standard of the avionics industry. It defines a protocol for the communication between avionics system elements over a local area network. First published in 1977 by Aeronautical Radio, Inc. in 1977, it has since become one of the most widely used data bus protocols in commercial aircrafts. The protocol encompasses different layers: from the physical requirements, through the electronic characteristics of the signal, data format and ending with a file transfer technique.
+
+  We continue with a short description of those parts of the specifications, which are relevant to this paper.
+  Data is transmitted over a single twisted and shielded pair of wires. It is transmitted one-way from one transmitter to up to 20 receivers over designated ports. Only one transmitter is allowed on the bus - a separate bus is required for each transmitter. The cable shield must be grounded on both ends. Return to Zero bipolar modulation is used. This is tri-level state modulation consisting of ``HI'', ``NULL'' and ``LO'' states. The differential output voltage from line A to line B is $10V \pm 1$ for ``HI'' mode, $0 \pm 0.5$ for ``NULL'' mode and $-10V \pm 1$ for ``LO'' mode. Data is transmitted in words that are 32-bit long. \textcolor{gray}{(Should we go into \href{https://en.wikipedia.org/wiki/ARINC_429#Word_format}{word format})}?. The protocol allows choice of one of two bit rates. Slow, within the range of 12.0 to 14.5 Kbits/sec, and fast, 100 Kbits/sec. The bit rate on a bus is fixed and maintained within \%1.
+  
+  MIL-STD-1553 is the military bus standard alternative of ARINC 429.
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Traces/word.png}
+    \caption{A 32 bit ARINC 429 word, voltage difference between twisted pair}
+    \label{fig:word_example}
+  \end{figure}
+  
+  \textcolor{gray}{(Should we address lack of authentication here (in addition to mentioning it in the motivation section)?)}
+
+\subsection{The Adversary Model}
+  The adversary must have physical access, since ARINC 429 is a wired protocol. He may or may not posses knowledge of the bus topology - i.e., number of receivers, distances, and models of connected devices. The attacker will try his best to mimic the characteristics of the original transmitter. In the worst case, he will use a transmitter which is identical (same manufacturer and model) to the compromised transmitter. \textcolor{gray}{(True statement? It is theoretically possible to use a massive signal generator, or maybe a dedicated device that can adjust itself to the real transmitter).}
+
+  The aim of the adversary is to perform a spoofing attack - to successfully transmit data to one or to all of the devices listening on the bus, without being detected. 
+
+  As defenders, we have no prior knowledge, what the attackers hardware might be. The attacker may have prior knowledge of the hardware and topology of the attacked system. The reverse is not true. However, we do assume that the adversary will use commercial off-the-shelf transmitter. Therefore, we used commercial transmitter in our tests.
+
+  The monitoring system has to train on the actual bus topology. We assume that there are no attacks during that time.
+
+\subsection{Adding another transmitter - fails}
+  It is important to remember, that ARINC 429 bus is designed to allow exactly one transmitter. Connecting two transmitters to the same bus violates the protocol. The adversary needs to make sure that the authentic \textcolor{gray}{(other adjactives that me be more suiting: true/original/genuine/compromised/targeted/guarded)} transmitter is disconnected, before connecting the malicious attacking transmitter. Otherwise, there is a risk that data will fail to deliver. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half. While we don't assert that this will always be the case, it serves as a cautionary anecdote for the attackers.
+
+\section{The Hardware Fingerprinting Approach}
+  In the following section we describe the key aspects of our algorithm.
+
+\subsection{Overview} \label{Overview}
+  When a new word is captured and tested for anomalies, it is processed in several stages. This section provides an overview of these steps. In later sections the method is explained in greater detail.
+  
+  \begin{enumerate}
+    \item \textbf{[Acquisition]}
+          Both lines of the bus are sampled at a sampling rate higher than what is needed, in order to extract just the digital data. The differential signal is received from subtracting the samples from line B from the samples from line A.
+    \item \textbf{[Segmentation]}
+          First, the word is broken done into 127 small segments of 10 different types, based on voltage levels. The purpose of the segmentation is to diffuse the effect of the transmitted data, the content of the word, on the final decision of the anomaly detector.
+    \item \textbf{[Feature Extraction]}
+          Multiple features are extracted from each segment. 
+    \item \textbf{[Anomaly Detection Per Segment]}
+          The features from each segment are fed into a trained anomaly detector. Each segment is marked as either ``normal'' or ``anomaly''.
+    \item \textbf{[Voting]}
+          A word is declared as an anomaly, an intruder, if the number of ``anomaly'' segments accedes a predetermined threshold.
+  \end{enumerate}
+  
+\subsection{The Data Corpus}
+  \textcolor{gray}{(equipment measured, sampling layout, sampling scope \& rate, transmitted data, number of traces, photo of connection board)}
+  
+  To the best of our knowledge, there is no publicly available data corpus that contains high rate samples of ARINC 429 protocol. We built our own data-set, with the kind assistance of \textit{Astronautics C.A. LTD.} \textcolor{gray}{(submission is anonymous. Remove this line? Hide it?)}
+  
+  We sampled two types of devices: M4K429RTx \textcolor{gray}{(either M4K249RT5 or M4K249RT10. Have to check. Does it matter?)}, test equipment from \textit{Excalibur Systems}. The Excalibur equipment hosts two transmitters, on two \textcolor{gray}{(identical?)} boards. We label them E1 and E2. The other device is HI-8597PSIF chip on HI-3220PQ Evaluation Board, manufactured by \textit{Holt Integrated Circuits INC.} Each board contains 4 chips. Each chip has 1 transmitter and 2 receivers. We label the transmitters H{x}{y}, where x is the board number, 1 or 2, and y is the transmitter number from 1 to 4. The receivers are labeled the same way. The two devices communicated with a proprietary device manufactured by Astronautics. \textcolor{gray}{(What are we allowed to say about the Pilatus?)}. This device was not sampled as a transmitter. We labeld the devices P1 and P2.
+  
+  For sampling we used Keysight DSO9254A scope. All signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. In some experiments further downsampling by a factor of 10 to 5 MSa/s was performed digitally on the differential signal, using a 30 point FIR filter with Hamming window.
+  
+  The transmitters and receivers were connected through a board that exposes the wires, that we fabricated for this purpose \textcolor{gray}{(too much information?)}.
+  
+  \begin{figure}[t]
+    \centering
+    %Use 1 for the two columns
+    \includegraphics[width=1.0\linewidth, angle=0]{Images/setup_3}
+    \caption{Holt Evaluation Board sampled}
+    \label{fig:SetupImage}
+  \end{figure}
+  
+  All devices transmitted the same data. 6 values of words were transmitted, with hex values: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0xAA555555}, \texttt{0x55AAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. (In ARINC 429, the bits are not transmitted in strict LSB or MSB first. \texttt{0x55AAAAAA} and \texttt{0xAA555555} are transmitted as \texttt{0xAAAAAAAA} and \texttt{0x55555555} respectfully). Transmitting the same data on all devices eliminates the possibility that, instead of learning the analog features, our transmitter unintentionally will learns the data.
+  
+  In addition to recording transmitter-receiver pairs, we recorded E1 and E2 transmitting to P1 and P2 respectfully, with different holt devices attached as additional transmitters. Table \ref{tab:RecordingsSummery} shows the different combinations of transmitter-receiver in our data-set, and the number of words recorded for each combination.
+  
+  
+  \begin{table}
+    \caption{Distribution of recorded words in data-set}
+    \label{tab:RecordingsSummery}
+    \centering
+    \begin{tabular}{|c c c|} 
+      \hline
+      Transmitter & Receiver & \#Words \\ [0.5ex] 
+      \hline\hline
+      E1 & P1 & 4920 \\ % There are actually 9840, but I use half to keep a balanced dataset.
+      \hline
+      E1 & P1, H10 & 4920 \\
+      \hline
+      E1 & P1, H12 & 4920 \\
+      \hline
+      E1 & P1, H20 & 4920 \\
+      \hline
+      E1 & P1, H22 & 4920 \\
+      \hline
+      H10 & P1 & 4920 \\
+      \hline
+      H11 & P1 & 4920 \\
+      \hline
+      H12 & P1 & 4920 \\
+      \hline
+      H13 & P1 & 4920 \\
+      \hline
+      H20 & P1 & 4920 \\
+      \hline
+      H21 & P1 & 4920 \\
+      \hline
+      H22 & P1 & 4920 \\
+      \hline
+      H23 & P1 & 4920 \\
+      \hline
+      E2 & P2 & 4920 \\ % There are actually 9840, but I use half to keep a balanced dataset.
+      \hline
+      E2 & P2, H10 & 4920 \\
+      \hline
+      E2 & P2, H12 & 4920 \\
+      \hline
+      E2 & P2, H20 & 4920 \\
+      \hline
+      E2 & P2, H22 & 4920 \\
+      \hline
+      H10 & P2 & 4920 \\
+      \hline
+      H11 & P2 & 4920 \\
+      \hline
+      H12 & P2 & 4920 \\
+      \hline
+      H13 & P2 & 4920 \\
+      \hline
+      H20 & P2 & 4920 \\
+      \hline
+      H21 & P2 & 4920 \\
+      \hline
+      H22 & P2 & 4920 \\
+      \hline
+      H23 & P2 & 4920 \\
+      \hline
+    \end{tabular}
+  \end{table}
+  
+\subsection{Novelty Detection per Segment}
+  As mentioned in the overview [\ref{Overview}], after segmentation and feature  extraction, the next step in our algorithm is to perform per segment anomaly  detection. There are several types of segments, as detailed in \ref{tab:RecordingsSummery}. Because the segments are very different from each other \textcolor{gray}{(elaborate: in what respect?)}, we opted for training a different each type of segment we train a different novelty detector.
+  \textcolor{gray}{(Maybe segmentation needs to be explained before this section?)}
+  
+  For the novelty detection task itself, we used the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof} LOF is a density based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (sample), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average ``distance'' of the point from its neighbors. Instead of the standard definition for distance, Breunig et al. use a slightly modified definition, which they term reachability-distance. reachability-distance produces more stable results within clusters compared to the standard distance. 
+  
+  When the algorithm is used for the task of outlier detection, all points in the data-set are checked simultaneously.  When used instead for the task of anomaly detection, the way we do in this paper, each point in the data-set is checked against the train-set individually.
+  
+  There are several hyper-parameters for the LOF algorithm. For the number of neighbors examined when calculating the LOF, we chose 20. We used the Euclidiean metric for the distance. The threshold on the local outlier factor that defines an anomaly is chosen so 10\% of samples in the \textbf{train-set} are outliers.
+  
+  LOF has shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative} \textgray{although on traffic, not on analog signals, and in 2003}. This fact, together with the available scikit-learn python implementation, mad it an appealing choice. Of course, there may be other algorithms that will outperform LOF for this domain. Comparing different anomaly detection algorithms is beyond the scope of this paper.
+  
+\subsection{Word-Based Anomaly Detection}
+  For each segment in the word, a suggestion has been made regarding the authenticity of the word. The number of segments that have been identified as authentic is subjected to a threshold. If it is greater than that threshold, the word is predicted to be authentic, otherwise, it is flagged as an anomaly.
+  
+%%%%%%%%%%%%%
+\section{Signal Segmentation}
+  Our method aims to rely solely on the physical characteristics of the hardware, and to be completely agnostic to the transmitted data. In order to achieve this goal, each word is segmented to 127 segments of 10 different types \textcolor{gray}{(repeating information from previous sections)}.
+  
+  The segmentation is performed in the following manner. A segments starts where the voltage level of the signal rises above / falls below a certain threshold, and ends where it falls below / rises above another threshold. Two different levels of thresholds are employed in order to produce a stabling hysteresis effect.
+  
+  \ref{tab:SegmentationLevels} shows the voltage levels used for each segment type. \ref{fig:SegmentationTrace} shows an example of word segmentation. \textcolor{gray}{(I'll change the trace. The current figure is confusing).}
+  
+  \begin{table}
+    \caption{Characterization of Segment Types by Voltage Thresholds}
+    \label{tab:SegmentationLevels}
+    \centering
+    \begin{tabular}{|c c c|} 
+      \hline
+      Segment & Starting Threshold & Ending Threshold \\ [0.5ex] 
+      \hline\hline
+      Low & falls below $-V_{h_1}$ & rises above $-V_{h_2}$ \\
+      \hline
+      High & rises above $V_{h_1}$ & falls below $V_{h_2}$ \\
+      \hline
+      Zero, high to high & falls below $V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      Zero, high to low & falls below $V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      Zero, low to low & rises above $-V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      Zero, low to high & rises above $-V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      Up from low & rises above $-V_{h_2}$ & rises above $-V_{l_1}$ \\
+      \hline
+      Up from zero & rises above $V_{l_2}$ & rises above $V_{h_1}$ \\
+      \hline
+      Down from high & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
+      \hline
+      Down from zero & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
+      \hline
+    \end{tabular}
+  \end{table}
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Traces/segmentation.png}
+    \caption{Segmentation Example}
+    \label{fig:SegmentationTrace}
+  \end{figure}
+  
+  \color{gray}
+  why - data agnostic
+  quarter-bits; how
+  show graph of segmented signal (?)
+  characteristics: ascent, over/under-shoot, return to zero and go down/up,
+  etc...
+
+  sampling rate + subsampling
+  \color{black}
+
+%%%%inline formula $\sum_{i=0}^n x_i $
+
+%%%displayed formula
+%%%\[
+%%%\sum_{i=0}^n x_i
+%%%\]
+
+%%%method 2: half-bits; how
+
+%%%%%%%%%%%%%%%%%
+\section{Feature Selection}
+
+  \color{gray}
+  advantages of feature selection (model size reduction, speed, accuracy?)
+  \color{black}
+
+
+\subsubsection{scission feature}
+
+\cite{kneib2018scission}
+
+\subsubsection{domain-specific features}
+  potential features
+  \begin{itemize}
+    \item ascent rate
+    \item maximum and minimum in plateau
+    \item ...
+  \end{itemize}
+ 
+ \subsection{The Benjamini Hochberg method}
+ 
+ \cite{benjamini1995controlling}
+ 
+  labeled data
+ 
+  results: top X features  (bar chart)
+
+%%%%%%%%%%%%%%%%%%
+\section{Performance Evaluation}
+
+\subsection{Methodology}
+  In order to evaluate the performance of our algorithm, we designate each time one of the transmitters as the authentic device to be guarded. All the other devices are in the role of attackers. We select one of the two receivers. We run all the stages of the algorithm with the hyper-parameters that we wish to evaluate, up to and not including the voting stage.
+  
+  At this point we extract a few metrics from comparing the votes to the ground truth labels.
+  \begin{enumerate}
+    \item area under the roc (tpr vs. fpr) curve
+    \item precision, recall and f1 score for a majority decision applied to the votes
+    \item the lowest threshold that can be set while maintaining a fpr of 0
+  \end{enumerate}
+  
+  \textcolor{gray}{(We can also compute the complementary of the last score - the highest threshold that can be set while maintaining a tpr of 1)}
+  
+  For selected cases we plot the tpr and the fpr as a function of the threshold, or we plot the roc (tpr vs. fpr).
+  
+  In all cases the train-test split is 60\%-40\%.
+  
+\subsection{Identifying a Rogue Transmitter}
+  Table \ref{tab:RougeScores} compares the computed scores for different choices of guarded device, receiver and feature sets. In all of the experiments, the auc is close to 1, implying that for a right choice of a threshold, high tpr and low fpr can be achieved. We also see that consistently, higher thresholds are required when guarding h10 and h20. The precision in a majority vote is less than 0.5 for these devices. The Scission feature set yields slightly better results than the others in these cases.
+  
+  \textcolor{gray}{(Try again with a higher threshold?)}
+  
+  \begin{table}
+    \caption{Rouge Transmitter Scores}
+    \label{tab:RougeScores}
+    \centering
+    \begin{tabular}{l|c}%
+      \csvautotabular{scores_pretty.csv}
+    \end{tabular}
+  \end{table}
+  
+  
+  Figure \ref{fig:tpr_fpr_e1_p1} show the fpr and the tpr as a function of the threshold value for the e1 as a guarded device, with p1 as a receiver. Figure \ref{fig:votes_excalibur_1} shows a different representation of the same data. In blue is 1 - the derivative of the tpr. In orange 1 - the derivative of the fpr. \textgray{(I finally understood that the histogram that we have been looking at are just that. Maybe just plot the standart tpr and fpr? It is much easier to explain.)}
+  % Old Explanation. the histogram of the number of segments in a word that voted against anomaly. The histogram is normalized, so that the surface under the graph is one. We plot two separate graphs, one for each of the ground truth labels.
+  To compare, \ref{fig:tpr_fpr_h20_p2} and \ref{fig:votes_holt_20} are the same graphs for h20 as a guarded transmitter and p2 as a receiver. It is apparant that this is a more challanging case.
+  
+  In an attempt to understand where the difference is coming from, we plot the precision and recall for each type of segment individually, before the voting stage. The graphs are shown in figures \ref{fig:segments_comparison_excalibur_1} \& \ref{fig:segments_comparison_holt_20}. We see that the errors are not equally divided among all segment types.
+
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/votes_scission_line_1_excalibur.png}
+    \caption{Holt Evaluation Board sampled}
+    \label{fig:votes_excalibur_1}
+  \end{figure}
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/scission_e1_p1_tpr_fpr.png}
+    \caption{tpr and fpr for e1 as guarded}
+    \label{fig:tpr_fpr_e1_p1}
+  \end{figure}
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/votes_scission_line_2_holt_20.png}
+    \caption{Holt Evaluation Board sampled}
+    \label{fig:votes_holt_20}
+  \end{figure}
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/scission_h20_p2_tpr_fpr.png}
+    \caption{tpr and fpr for h20 as guarded}
+    \label{fig:tpr_fpr_h20_p2}
+  \end{figure}
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/segments_precission_recall_scission_line_1_excalibur.png}
+    \caption{Holt Evaluation Board sampled}
+    \label{fig:segments_comparison_excalibur_1}
+  \end{figure}
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/segments_precission_recall_scission_line_2_holt_20.png}
+    \caption{Holt Evaluation Board sampled}
+    \label{fig:segments_comparison_holt_20}
+  \end{figure}
+  
+  graphs of:
+
+   port-to-port sensitivity
+
+   Excalibur as guarded
+ 
+   Holt as guarded
+ 
+\subsection{Feature-Selection Revisited}
+
+\subsection{Are we sensitive to the transmitter or receiver}
+
+\subsection{Adding another receiver}
+
+
+\section{Conclusions}
+
+\bibliographystyle{IEEEtranS}
+\bibliography{biblio} 
+
+\end{document}
