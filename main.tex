@@ -49,32 +49,50 @@
 
 
 \section{Introduction}
+  A lot of communication buses in an airborne vehicle. ARINC 429 is very common. No security features. AFDX is better but still very new, but will take some time to replace all ARINC. Making changes to the protocol is costly and unlikely. Sufficient MAC is 20 bits (cite?) while payload is 24 or less. No major changes in X years. We propose a method that requires only adding a monitoring unit. Does not require hardware or software updates and is compliant with the protocol. Exploiting inimitable characteristics.
+  We explore differentiability between vendors and between same product. Same exact message, different signal because of inimitable electrical characteristics.
   \color{gray}
   We propose an intruder detection algorithm for the ARINC 429 data bus, that bases its decisions solely based on the analog properties of the transmitter, receiver(s) and bus topology.
   \color{black}
+  Describe intrusion detection systems (IDS) in general.
+  ARINC 429 was not design for security but rather for safety, and the original protocol does not contain methods for sender authentication.
+  Paper structure.
+  IDS complementary, since it cannot identify a data anomaly. Can aid in pin pointing a rogue device, once the IDS noticed a suspicious behavior.
 
 \subsection{Motivation}
   \color{gray}
   Advantage 1: ...Of course, the attacker is aware of the possibility of a cyber defence systems monitoring the communication on the bus. As a countermeasure, they will attempt to mask the offensive data as data naturally occurring in the system. This type of operation is meant to make it hard for defence systems to detect intruders solely based on the digital data. Advantage 2: (Is it true to say, that other algorithms require a sequence of words, while ours can make a decision based on a single word? Maybe other systems can do that too, or maybe our system should use more than one word for robustness?)
+  No need to change the protocol or the systems. Does not increase computational demands or communication overhead.
+  Backward compatible.
   \color{black}
 
 \subsection{Related Work}
-  \cite{uluagac2013passive} - wired fingerprinting based on packet inter-arrival time, wired side of wireless network components (routers)
-  \cite{pimentel2014review} - A review of novelty detection
-  \cite{jaynes2016automating} - Vehicle ECU. features are mostly data payload, but they suggest using delays
-  \cite{cho2016fingerprinting} - fingerprinting ECUs. Based on clocks (offset, frequency, skew). Also looks like a good intro. this paper has 130+ quotes.
-  \cite{choi2018identifying} - ECUs. features very similar to Scission, without segmentation. they extract from labels. even use EXID for more bits.
+  To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; RF \cite{ellis2001characteristics, hall2003detection, hall2005radio, ureten2007wireless, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{lukavs2006digital, li2010source, dey2014accelprint, bojinov2014mobile, das2014you, das2016tracking}. \textcolor{gray}{(I only read the abstract of most of these studies)}
   
-  DTW?
-
-\color{gray}
-hardware fingerprinting ethernet
-
-\cite{kneib2018scission}
-\color{black}
-
-
+  One domain in particular is of special intereset to us: controller area network (CAN bus) \cite{}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN \textcolor{gray}{without bit stuffing, 140 with}). Both were formulated more than 30 years ago (ARINC was released in 1977, CAN in 1986), and have changed very little since. This leads to the most important similarity between the two standards standards in the context of this paper: they were not designed for security but rather for safety, and lack source authentication.
+  In recent years a number of successful cyber attacks were demonstrated on cars \cite{}, motivating researchers in academics and in the automotive industry to search for new ways to hinder attacks. Some research focuses on hardware fingerprinting as an alternative to source authentication. We continue with short descriptions of selected works on the topic.
+  
+  % like ARINC 429, straightforward authentication tools like HMAC are an unlikely solution \textcolor{gray}{(elaborate?)}. 
+  
+  In \cite{cho2016fingerprinting} the authors propose using the measured arrival time of periodic messages to estimate characteristics of a transmitter's internal clock, which are then used as fingerprints. It has been demonstrated in \cite{sagong2018cloaking} that timing features can be emulated by an attacker, and therefore might not be a reliable means for identification.
+  In \cite{murvay2014source} the authors have demonstrated that transmitters of CAN messages can be identified by the signal's electrical characteristics. They propose using the CAN ID field \textcolor{gray}{(/message id/arbitration/part of a frame found suitable)} part of the signal as a fingerprint. New messages are compared in the time domain \textcolor{gray}{(via MSE or max convolution)} to the stored recordings. \textcolor{gray}{They also observed that the electrical characteristics remain stable for a period of months in a lab setup.}
+  
+  In \cite{choi2018identifying} the authors suggest using time domain and frequency domain features extracted from the CAN ID field as fingerprints. They perform feature selection using the mutual information criterion in order to reduce the number of used features. ML techniques are utilized for classification (SVM, NN and BDT). \textcolor{gray}{(this paper also avoids having to deal with collisions by the extended identifier, but I don't think this is relevant for our paper.)}
+  
+  In \cite{cho2017viden} the authors device a method for generating fingerprints based on the order statistics of voltage levels \textcolor{gray}{(percentiles, most frequent, median)}. \textcolor{gray}{The algorithm adapts to power supply fluctuations and temperature changes by constantly updating the fingerprints based on new samples.}
+  
+  In \cite{choi2018voltageids} the authors construct the fingerprints by extracting time domain and frequency domain features from selected parts of a message \textcolor{gray}{(they take one positive-slope, one negative-slope and one dominant (HI). I'm not sure how to communicate this without going into specifics)}. They perform feature selection with sequential forward selection, and SVM and BDT for classification. Incremental learning techniques \cite{diehl2003svm} are employed in order to compensate for temporal changes of the characteristics.
+  
+  In \cite{kneib2018scission}, when a frame arrives, the authors first build a number of artificial signals from that frame. The artificial signals are made by cutting the signal and concatenating parts that share a similar behavior: positive slope transient, negative slope transient and stable positive voltage \textcolor{gray}{(dominant)}. For each of these three artificial symbols, a set of time domain and frequency domain features are extracted.
+  
+  \textcolor{gray}{(should I specify the shortcomings of each of these papers? That's what they do in these papers. On the other hand, we are not trying to compete with them, because we are operating on a different protocol.)}
+  
+  CAN bus and ARINC 429 different line protocols, therefore methods presented in the above papers cannot be directly applied to our problem without change. Even if it could, there is no guarantee that an algorithm that was designed for one protocol will be just as effective for another.
+  
+  A key difference between the two protocols is the bus topology . In CAN bus dozens of transceivers may share one bus. The main threat CAN papers are dealing with is device hijacking, where one transmitter is remotely hacked, and ordered to imitate the messages of another transmitter on the same bus. Since on a normal operation of a car, devices do not spontaneously join or leave the network, all the devices are known to the defender in advance. This scenario naturally fits into a multiclass classification setting, where a message needs to be assigned to one of many known classes. In ARINC 429 on the other hand, only one transmitter is allowed on a line. Only the guarded transmitter is known to the defender beforehand. The task is to categorize a message as either legitimate or as an anomaly (attack). Classification algorithms are not suitable for this task, because only samples from the legitimate class can be obtained for training. This outline calls for the use of novelty detection algorithms \cite{pimentel2014review}. It is worth noting that some papers (\cite{choi2018identifying}, \cite{choi2018voltageids}) do extend their algorithms to handle detection of unknown transmitters. However, this is still not their primary objective. In contrast, this paper's whole approach built around anomaly detection.
+  
 \subsection{Contributions}
+\textcolor{gray}{lack of recordings of real attack proposes a challenge. we propose a method. demonstrate the importance of maintaining equal conditions (topology, receiver) when evaluating.}
 
 \section{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
@@ -103,7 +121,7 @@ hardware fingerprinting ethernet
   \textcolor{gray}{(Should we address lack of authentication here (in addition to mentioning it in the motivation section)?)}
 
 \subsection{The Adversary Model}
-  Out method is designed to guard against technician attacks. This type of attack involves an adversary that has physical access to the system. Such an adversary is able to replace a legitimate transmitter with a malicious one. During an initial dormant phase of the attack, the new device imitates the behavior of the legitimate transmitter, transmitting data exactly as requested, in order to remain hidden. Only at a later time, the attack moves on to its active phase. During this phase the malicious transmitter sends out messages which disrupt the work of the system, and in extreme cases causes irreversible damage to the electronic or physical components. \textcolor{red}{back to sleep etc.,}
+  Out method is designed to guard against technician attacks. This type of attack involves an adversary that has physical access to the system. Such an adversary is able to replace a legitimate transmitter with a malicious one. During an initial dormant phase of the attack, the new device imitates the behavior of the legitimate transmitter, transmitting data exactly as requested, in order to remain hidden. Only at a later time, the attack moves on to its active phase. During this phase the malicious transmitter sends out messages which disrupt the work of the system, and in extreme cases causes irreversible damage to the electronic or physical components.
   
   % DELETE THIS PARAGRAPH?
   % An attacker may or may not posses knowledge of the bus topology - i.e., number of receivers, distances, and models of connected devices. The attacker will try their best to mimic the characteristics of the original transmitter. In the most case for the defenders, the attacker will use a transmitter which is identical (same manufacturer and model) to the compromised transmitter. (True statement? It is theoretically possible to use a massive signal generator, or maybe a dedicated device that can adjust itself to the real transmitter).
@@ -111,6 +129,8 @@ hardware fingerprinting ethernet
   The attacker may have prior knowledge of the hardware and topology of the attacked system. The reverse is not true. As defenders, we have no prior knowledge, what the attackers hardware might be. However, we do assume that the adversary will use a commercial off-the-shelf transmitter. Therefore, we used commercial transmitters in our tests.
 
   The monitoring system we propose has to be fitted to the bus it is guarding. During a training period \textcolor{gray}{(session/multiple sessions. We don't want to commit to a length.)} it samples the bus and learns the transmitter's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the monitoring system is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an attacker from retraining the monitoring system after switching the legitimate transmitter for the malicious one. 
+  
+  \textcolor{gray}{ASSUMPTION: one message is not enough to cause damage. our alg. only opperates after a word is sent and received.}
 
 \subsection{Adding another transmitter - fails}
   It is important to remember that the ARINC 429 bus is designed to allow exactly one transmitter. Connecting two transmitters to the same bus violates the protocol. The adversary needs to make sure that the legitimate transmitter is disconnected, before connecting the rogue attacking transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for the attackers.
@@ -381,7 +401,6 @@ hardware fingerprinting ethernet
   Before discussing Figure \ref{fig:rogue_transmitter_results} as a whole, we will examine two experiments in order to get a better feel for the meaning of each test. Figure \ref{fig:detection_easy_example} show the FNR and the FPR as a function of the threshold value for the e1 as a guarded device, with p1 as a receiver. The Scission set is used. For comparison, Figure \ref{fig:detection_difficult_example} is a representation h21 as a guarded transmitter and p1 as a receiver. It is apparent that this is a more challenging case. In Figure \ref{fig:detection_easy_example}, the FNR and the FPR do not intersect. There is a wide range of thresholds, for which both and FNR of 0 and an FPR of can be achieved simultaneously. In contrast, in \ref{fig:detection_difficult_example} there is only a narrow range of thresholds for which both error rates are small, and the EER is greater than zero.
   
   In an attempt to understand where the difference is coming from, we plot the TPR and the FPR for each type of segment individually, before the voting stage. The graphs are shown in Figure \ref{fig:segments_easy_example} \& in Figure \ref{fig:segments_difficult_example}. We see that the errors are not equally divided among all segment types.
-  \textcolor{red}{YOU ARE HERE. explain that the tpr and fnr here are different, because decision is per segment, not per word, and there is no thresholding because of that.}
 
   \begin{figure}[t]
     \centering
