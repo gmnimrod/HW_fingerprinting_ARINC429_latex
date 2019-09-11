@@ -78,7 +78,7 @@
 %   \textcolor{gray}{(Should we address lack of authentication here (in addition to mentioning it in the motivation section)?)}
 
 \subsection{Related Work} \label{RelatedWork}
-  To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; wireless radio \cite{ellis2001characteristics, hall2003detection, hall2005radio, ureten2007wireless, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{lukavs2006digital, li2010source, dey2014accelprint, bojinov2014mobile, das2014you, das2016tracking}.
+  To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; wireless radio \cite{ellis2001characteristics, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{dey2014accelprint, das2016tracking}.
   
   One domain in particular is of special interest to us: controller area network (CAN bus) \cite{}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN \textcolor{gray}{without bit stuffing, 140 with}). Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and lack source authentication.
   In recent years a number of successful cyber attacks were demonstrated on cars \cite{}, motivating researchers to search for new ways to hinder attacks.
@@ -144,7 +144,155 @@
 \subsection{Adding another transmitter - fails}
   It is important to remember that the ARINC 429 bus is designed to allow exactly one transmitter. Connecting two transmitters to the same bus violates the protocol, therefore an adversary cannot simply add a transmitter to the bus. Furthermore, it is not possible to turn a receiver into a transmitter by software only, since its wiring does not permit it. Thus, the adversary must use physical access to the equipment in order to mount the attack. The adversary needs to make sure that the legitimate transmitter is disconnected, before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitting during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
 
-\section{Signal Segmentation}
+\section{The Hardware Fingerprinting Approach}
+  An intrusion detection system which draws its information exclusively from the digital content of the transmitted messages will be unable to detect the rogue transmitter during the dormant phases. Only during an active phase of the attack is the transmitted data distinguishable from that of a legitimate transmission. The IDS we propose utilizes information from the analog domain. At the electronic level, the two transmitters differ even during dormant phases. The malicious hardware can be flushed out as soon as it begins signalling.
+  Usually, before takeoff, the aircraft systems are checked for basic integrity. During this pre-flight operations the transmitter replacement will be detected.
+  
+\subsection{IDS Overview} \label{Overview}
+  Our method operates on a word by word basis. When a new word is captured and tested for anomalies, we process it in several stages. This section provides an overview of these steps. In the subsequent sections each stage is explained in greater detail.
+  
+  \begin{enumerate}
+    \item \textbf{[Acquisition]}
+          We sample both lines of the bus at a sampling rate that is 50 times higher than the rate which is needed in order to extract the bit values. We used a sample rate of 5 MSa/s. The differential signal is received from subtracting the samples of line B from the samples of line A.
+    \item \textbf{[Segmentation]}
+          The word is split into 127 segments of 10 different types, based on voltage levels. The purpose of the segmentation is to eliminate the effect of the transmitted data, the content of the word, on the final decision of the anomaly detector.
+    \item \textbf{[Feature Extraction]}
+          We extract multiple features from each segment. 
+    \item \textbf{[Anomaly Detection Per Segment]}
+          The features from each segment are fed into a trained anomaly detector. Each \textit{segment} is marked as either ``normal'' or ``anomaly''.
+    \item \textbf{[Voting]}
+          A word is declared as an anomaly, if the number of ``anomaly'' segments exceeds a predetermined threshold.
+  \end{enumerate}
+  
+\subsection{The Data Corpus}
+  To the best of our knowledge, there is no publicly available data corpus that contains high rate samples of ARINC 429 protocol. We built our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{}.
+  
+  We sampled two types of transmitters:
+  \begin{enumerate}
+     \item A m4K429RTx test equipment from \textit{Excalibur Systems} \cite{}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
+     \item HI-8597PSIF chips on HI-3220PQ Evaluation Boards, manufactured by \textit{Holt Integrated Circuits INC.} \cite{}. We used one of two boards, each with 4 transmitters on 4 separate chips. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
+  \end{enumerate}
+  
+  The transmitters were connected to one or more of the following receivers:
+  \begin{enumerate}
+    \item A EDCU, a proprietary device manufactured by \textit{Astronautics C.A. LTD.} \cite{astronautics2019edcu}. The device has two receivers which we label \(\text{P}_1\) and \(\text{P}_2\).
+    \item The HI-8597PSIF chips also host receivers. Each chip has two receiver ports. We label the receivers the same way as the transmitters with \(\text{H}_{xy}\), where x is the board number as before, and y is the receiver number.
+  \end{enumerate}
+  
+  We sampled two types of transmitters: 1. A M4K429RTx test equipment from \textit{Excalibur Systems} \cite{}. The Excalibur equipment hosts two transmitters, on two boards which we label \(\text{E}_1\) and \(\text{E}_2\). 2. A HI-8597PSIF chip on HI-3220PQ Evaluation Board, manufactured by \textit{Holt Integrated Circuits INC.} \cite{}. We used one of two boards, each with 4 chips. Each chip has 1 transmitter and 2 receivers. We label the transmitters H{x}{y}, where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3. The receivers are labeled in a similar fashion. H{x}{y}, where x is the board number, and y is the receiver number. We only used a subset of the available receivers. Either the Excalibur or one of the Holt boards communicated with a proprietary device manufactured by Astronautics \textcolor{gray}{(waiting for a part number from Astronautics)}. This device was not sampled as a transmitter. We label the receivers \(\text{P}_1\) and \(\text{P}_2\).
+  
+  For sampling we used a Keysight DSO9254A scope. All signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
+  
+  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
+  
+  \begin{figure}[t]
+    \centering
+    %Use 1 for the two columns
+    \includegraphics[width=1.0\linewidth, angle=0]{Images/setup_3}
+    \caption{The Holt evaluation board on the left, andthe fabricated connector board on the right}
+    \label{fig:SetupImage}
+  \end{figure}
+  
+  All devices transmitted the same data. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Transmitting the same data on all devices eliminates the possibility that instead of learning the analog features our transmitter unintentionally will learn the encoded data.
+  
+  In addition to recording transmitter-receiver pairs, we recorded \(\text{E}_1\) and \(\text{E}_2\) transmitting to \(\text{P}_1\) and \(\text{P}_2\) respectfully, with different Holt devices attached as additional receivers. Table \ref{tab:RecordingsSummery} shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
+  
+  \begin{table}
+    \caption{Distribution of Recorded Words in the Data Set}
+    \label{tab:RecordingsSummery}
+    \centering
+    \begin{tabular}{|c | c c c|} 
+      \hline
+      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
+      \hline\hline
+      1 & \(\text{E}_1\) & \(\text{P}_1\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      2 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      3 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      4 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      5 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      6 & \(\text{H}_{10}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      7 & \(\text{H}_{11}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      8 & \(\text{H}_{12}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      9 & \(\text{H}_{13}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      10 & \(\text{H}_{20}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      11 & \(\text{H}_{21}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      12 & \(\text{H}_{22}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      13 & \(\text{H}_{23}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      14 & \(\text{E}_2\) & \(\text{P}_2\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      15 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      16 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      17 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      18 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      19 & \(\text{H}_{10}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      20 & \(\text{H}_{11}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      21 & \(\text{H}_{12}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      22 & \(\text{H}_{13}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      23 & \(\text{H}_{20}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      24 & \(\text{H}_{21}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      25 & \(\text{H}_{22}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+    \end{tabular}
+  \end{table}
+  
+\subsection{Segmentation}
+  We divide each word into sub-bit non-overlapping segments. The segmentation process is explained in detail in section [\ref{SignalSegmentation}]. For now, it is sufficient to know that there are exactly 127 segments in a word form 10 different types.
+
+\subsection{Feature Extraction}
+  We extract features from each segment. We tested different features sets. They are described in detail section [\ref{FeatureExtraction}].
+
+\subsection{Novelty Detection per Segment}
+  We perform per segment anomaly detection. There are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in section [\ref{SignalSegmentation}]. A segment's characteristics depend on its type. Therfore we opted to train a different novelty detector for each type of segment.
+  
+  There are many outlier and novelty detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{}, One-Class SVM \cite{}, Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
+  
+  For the novelty detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this paper.
+  
+  LOF is a density based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (feature vector), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average distance of the point from its neighbors.
+  
+  There are several hyper-parameters for the LOF algorithm. In all cases we used the default parameters provided by implementation. For the number of neighbors examined when calculating the LOF the default is 20. We used the Euclidean metric for the distance measure. The threshold on the local outlier factor that defines an anomaly is automatically set so 10\% of samples in the \textit{training set} are outliers.
+  
+  We constructed a separate novelty detector for each type of segment. In this stage, each segment is fed individually into its appropriate LOF novelty detector. The LOF outputs its suggestion regarding the source of the segment, either `normal' or `anomaly'.
+  
+\subsection{Word-Based Anomaly Detection}
+  We gather all the suggestions made by the different LOF detectors for all segments of the same word. The number of segments that have been identified as legitimate is subjected to a threshold. If it is greater than that threshold, the word is predicted to be `normal', otherwise, it is flagged as an `anomaly'.
+  
+%%%%inline formula $\sum_{i=0}^n x_i $
+
+%%%displayed formula
+%%%\[
+%%%\sum_{i=0}^n x_i
+%%%\]
+
+%%%method 2: half-bits; how
+
+%%%%%%%%%%%%%%%%%
+\section{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
   In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a 1 bit starts with a transition up from NULL to HI, then a plateau on HI, then a transition down from HI back to NULL, and finally a NULL plateau. Furthermore, we observed 4 different variants of NULL, depending on the current and the next bit. All in all we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels}.
@@ -210,137 +358,7 @@
   sampling rate + downsampling
   \color{black}
   
-\section{The Hardware Fingerprinting Approach}
-  An intrusion detection system which draws its information exclusively from the digital content of the transmitted messages will be unable to detect the rogue transmitter during the dormant phases. Only during an active phase of the attack is the transmitted data distinguishable from that of a legitimate transmission. The IDS we propose utilizes information from the analog domain. At the electronic level, the two transmitters differ even during dormant phases. The malicious hardware can be flushed out as soon as it begins signalling.
-  Usually, before takeoff, the aircraft systems are checked for basic integrity. During this pre-flight operations the transmitter replacement will be detected.
-  
-\subsection{IDS Overview} \label{Overview}
-  Our method operates on a word by word basis. When a new word is captured and tested for anomalies, we process it in several stages. This section provides an overview of these steps. In the subsequent sections each stage is explained in greater detail.
-  
-  \begin{enumerate}
-    \item \textbf{[Acquisition]}
-          We sample both lines of the bus at a sampling rate that is 50 times higher than the rate which is needed in order to extract the bit values. We used a sample rate of 5 MSa/s. The differential signal is received from subtracting the samples of line B from the samples of line A.
-    \item \textbf{[Segmentation]}
-          The word is split into 127 segments of 10 different types, based on voltage levels. The purpose of the segmentation is to eliminate the effect of the transmitted data, the content of the word, on the final decision of the anomaly detector.
-    \item \textbf{[Feature Extraction]}
-          We extract multiple features from each segment. 
-    \item \textbf{[Anomaly Detection Per Segment]}
-          The features from each segment are fed into a trained anomaly detector. Each \textit{segment} is marked as either ``normal'' or ``anomaly''.
-    \item \textbf{[Voting]}
-          A word is declared as an anomaly, if the number of ``anomaly'' segments exceeds a predetermined threshold.
-  \end{enumerate}
-  
-\subsection{The Data Corpus}
-  To the best of our knowledge, there is no publicly available data corpus that contains high rate samples of ARINC 429 protocol. We built our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{}.
-  
-  We sampled two types of transmitters: 1. A M4K429RTx test equipment from \textit{Excalibur Systems} \cite{}. The Excalibur equipment hosts two transmitters, on two boards which we label E1 and E2. 2. A HI-8597PSIF chip on HI-3220PQ Evaluation Board, manufactured by \textit{Holt Integrated Circuits INC.} \cite{}. We used one of two boards, each with 4 chips. Each chip has 1 transmitter and 2 receivers. We label the transmitters H{x}{y}, where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3. The receivers are labeled in a similar fashion. H{x}{y}, where x is the board number, and y is the receiver number. We only used a subset of the available receivers. Either the Excalibur or one of the Holt boards communicated with a proprietary device manufactured by Astronautics \textcolor{gray}{(waiting for a part number from Astronautics)}. This device was not sampled as a transmitter. We label the receivers P1 and P2.
-  
-  For sampling we used a Keysight DSO9254A scope. All signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
-  
-  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
-  
-  \begin{figure}[t]
-    \centering
-    %Use 1 for the two columns
-    \includegraphics[width=1.0\linewidth, angle=0]{Images/setup_3}
-    \caption{The Holt evaluation board on the left, andthe fabricated connector board on the right}
-    \label{fig:SetupImage}
-  \end{figure}
-  
-  All devices transmitted the same data. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Transmitting the same data on all devices eliminates the possibility that instead of learning the analog features our transmitter unintentionally will learn the encoded data.
-  
-  In addition to recording transmitter-receiver pairs, we recorded E1 and E2 transmitting to P1 and P2 respectfully, with different Holt devices attached as additional receivers. Table \ref{tab:RecordingsSummery} shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
-  
-  \begin{table}
-    \caption{Distribution of Recorded Words in the Data Set}
-    \label{tab:RecordingsSummery}
-    \centering
-    \begin{tabular}{|c | c c c|} 
-      \hline
-      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
-      \hline\hline
-      1 & E1 & P1 & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      2 & E1 & P1 \& H10 & 4920 \\
-      \hline
-      3 & E1 & P1 \& H12 & 4920 \\
-      \hline
-      4 & E1 & P1 \& H20 & 4920 \\
-      \hline
-      5 & E1 & P1 \& H22 & 4920 \\
-      \hline
-      6 & H10 & P1 & 4920 \\
-      \hline
-      7 & H11 & P1 & 4920 \\
-      \hline
-      8 & H12 & P1 & 4920 \\
-      \hline
-      9 & H13 & P1 & 4920 \\
-      \hline
-      10 & H20 & P1 & 4920 \\
-      \hline
-      11 & H21 & P1 & 4920 \\
-      \hline
-      12 & H22 & P1 & 4920 \\
-      \hline
-      13 & H23 & P1 & 4920 \\
-      \hline
-      14 & E2 & P2 & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      15 & E2 & P2 \& H10 & 4920 \\
-      \hline
-      16 & E2 & P2 \& H12 & 4920 \\
-      \hline
-      17 & E2 & P2 \& H20 & 4920 \\
-      \hline
-      18 & E2 & P2 \& H22 & 4920 \\
-      \hline
-      19 & H10 & P2 & 4920 \\
-      \hline
-      20 & H11 & P2 & 4920 \\
-      \hline
-      21 & H12 & P2 & 4920 \\
-      \hline
-      22 & H13 & P2 & 4920 \\
-      \hline
-      23 & H20 & P2 & 4920 \\
-      \hline
-      24 & H21 & P2 & 4920 \\
-      \hline
-      25 & H22 & P2 & 4920 \\
-      \hline
-      26 & H23 & P2 & 4920 \\
-      \hline
-    \end{tabular}
-  \end{table}
-  
-\subsection{Novelty Detection per Segment}
-  As mentioned in the Overview section [\ref{Overview}], after segmentation and feature  extraction, the next step in our algorithm is to perform per segment anomaly  detection. There are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels}. Because the segments are very different from each other \textcolor{gray}{(elaborate: in what respect?)}, we opted to train a different novelty detector for each type of segment.
-  
-  There are many outlier and novelty detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{}, One-Class SVM \cite{}, Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
-  
-  For the novelty detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this paper.
-  
-  LOF is a density based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (feature vector), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average distance of the point from its neighbors.
-  
-  There are several hyper-parameters for the LOF algorithm. In all cases we used the default parameters provided by implementation. For the number of neighbors examined when calculating the LOF the default is 20. We used the Euclidean metric for the distance measure. The threshold on the local outlier factor that defines an anomaly is automatically set so 10\% of samples in the \textit{training set} are outliers.
-  
-  We constructed a separate novelty detector for each type of segment. In this stage, each segment is fed individually into its appropriate LOF novelty detector. The LOF outputs its suggestion regarding the source of the segment, either `normal' or `anomaly'.
-  
-\subsection{Word-Based Anomaly Detection}
-  We gather all the suggestions made by the different LOF detectors for all segments of the same word. The number of segments that have been identified as legitimate is subjected to a threshold. If it is greater than that threshold, the word is predicted to be `normal', otherwise, it is flagged as an `anomaly'.
-  
-%%%%inline formula $\sum_{i=0}^n x_i $
-
-%%%displayed formula
-%%%\[
-%%%\sum_{i=0}^n x_i
-%%%\]
-
-%%%method 2: half-bits; how
-
-%%%%%%%%%%%%%%%%%
-\section{Feature Extraction}
+\section{Feature Extraction} \label{FeatureExtraction}
 
 \subsection{Feature Sets}
   In our work we compare the performance of the feature sets described below.
@@ -354,7 +372,7 @@
   This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same length. The length varies depending on segment type, as shown in Table \ref{tab:feature_set_sizes}.
   
 \subsubsection{Generic Time-Domain Feature Set}
-  As discussed in the Related Work section [\ref{RelatedWork}], in recent years a number of papers suggested using extracted features to perform hardware fingerprinting. \cite{dey2014accelprint}, followed by \cite{choi2018identifying}, \cite{choi2018voltageids} and most recently \cite{kneib2018scission} all utilized such time-domain features such as mean, standard deviation, skewness etc., with good results.
+  As discussed in section [\ref{RelatedWork}], in recent years a number of papers suggested using extracted features to perform hardware fingerprinting. \cite{dey2014accelprint}, followed by \cite{choi2018identifying}, \cite{choi2018voltageids} and most recently \cite{kneib2018scission} all utilized such time-domain features such as mean, standard deviation, skewness etc., with good results.
   
   These features are of a generic nature, in the sense that the shape of the signal does not affect the extraction process. Due to this property, it is possible to apply the same features in different fields of research.
   
@@ -365,10 +383,9 @@
     \caption{Generic Feature Set}
     \label{tab:generic_feature_set}
     \centering
-    \resizebox{\columnwidth}{!}{
-    \begin{tabular}{|c c|}
+    \begin{tabular}{|c c|} 
       \hline
-      Feature & Description \\ [0.5ex]
+      Feature & Description \\ [0.5ex] 
       \hline\hline
       Mean & \(\mu = \frac{1}{N}\sum_{i=1}^{N}x(i)\) \\
       \hline
@@ -387,7 +404,6 @@
       Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
       \hline
     \end{tabular}
-    }
   \end{table}
   
   In addition to time-domain features, the cited papers also employ frequency-domain features. We do not use frequency-domain features in this paper. The non-periodic nature of the signals, that are the result of our segmentation method, does not suite \textcolor{gray}{(benefit from? complemented by?)} frequency analysis.
@@ -417,9 +433,10 @@
     \caption{Number of Features per Segment Type}
     \label{tab:feature_set_sizes}
     \centering
-    \begin{tabular}{|c c c c c c|} 
+    \resizebox{\columnwidth}{!}{
+    \begin{tabular}{|c c c c c c|}
       \hline
-      Segment & Segment Length & Raw & Generic & Poly & Hand-Crafted \\ [0.5ex] 
+      Segment & Segment Length & Raw & Generic & Poly & Hand-Crafted \\ [0.5ex]
       \hline\hline
       LO & 20-24 & 20 & 8 & 7 & 10 \\
       \hline
@@ -442,6 +459,7 @@
       Down from NULL & 4-5 & 4 & 8 & 3 & 2 \\
       \hline
     \end{tabular}
+    }
   \end{table}
   
  
@@ -464,13 +482,13 @@
   In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. The measurements labeled as anomalies are not present in the training set.
   
 \subsection{Identifying a Rogue Transmitter}
-  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter by a rogue transmitter. In each experiment we we designate one of the our transmitters as the legitimate device to be guarded. In addition we choose one receiver, either P1 or P2.  We train our IDS to identify samples from the chosen tx-rx pair as normal.
+  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter by a rogue transmitter. In each experiment we we designate one of the our transmitters as the legitimate device to be guarded. In addition we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen tx-rx pair as normal.
   
   We then test the trained IDS. We simulate a rogue transmitter by using measurements of other transmitters connected to the chosen receiver as anomalies. We remind the reader that during each measurement, only one transmitter is connected to the bus.
   
-  Only the Holt devices were used to simulate attackers, whether the guarded transmitter is an Excalibur (E1 or E2) or a Holt (H10, ..., H13, H20, ..., H23).
+  Only the Holt devices were used to simulate attackers, whether the guarded transmitter is an Excalibur (\(\text{E}_1\) or \(\text{E}_2\)) or a Holt (\(\text{H}_{10}\), ..., \(\text{H}_{13}\), \(\text{H}_{20}\), ..., \(\text{H}_{23}\)).
   
-  For example, if we choose E1 as the guarded transmitter and P1 as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} will be labeled as normal and used in the training stage and in the testing stage. Words from rows 6-13 will be labeled as anomalies and used in the testing stage.
+  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} will be labeled as normal and used in the training stage and in the testing stage. Words from rows 6-13 will be labeled as anomalies and used in the testing stage.
   
   We repeat this process for all possible values of voting thresholds (0-127) and mark the MDR and the FAR for each threshold. From these values we obtain the EER and the FA/sec.
   
@@ -491,35 +509,35 @@
   
   \textcolor{gray}{(Not sure about this paragraph)} There is a correlation between the number of features and the performance of the feature set. This makes sense. The more features there are, the more expressive the model. Still, the conclusion still stands. In the tradeoff between memory/runtime to performance, in this particular case we lose a lot and gain little by using extracted features instead of the raw signal)
   
-  Interestingly, for all feature sets there are experiments which reached a perfect EER value of 0. The guarded transmitters in these experiments are E1, E2 and H10. Why do we achieve these results for E1 and E2? We only use Hxy to simulate rogue devices. This means that in experiments where E1 and E2 are used as guarded devices, the IDS is tasked with differentiating between a guarded device and rogue devices that are from completely different models. We expect devices from different models to have different characteristics. Why do we achieve these results for H10? Statistically, some devices of the same model will be more different than others.
+  Interestingly, for all feature sets there are experiments which reached a perfect EER value of 0. The guarded transmitters in these experiments are \(\text{E}_1\), \(\text{E}_2\) and \(\text{H}_{10}\). Why do we achieve these results for \(\text{E}_1\) and \(\text{E}_2\)? We only use Hxy to simulate rogue devices. This means that in experiments where \(\text{E}_1\) and \(\text{E}_2\) are used as guarded devices, the IDS is tasked with differentiating between a guarded device and rogue devices that are from completely different models. We expect devices from different models to have different characteristics. Why do we achieve these results for \(\text{H}_{10}\)? Statistically, some devices of the same model will be more different than others.
   
-  We demonstrate this point by examining two selected experiments. We plot the MDR and the FAR as a function of the threshold value of E1 (Figure \ref{fig:detection_easy_example}) and of H21 (Figure \ref{fig:detection_difficult_example}) as guarded devices. Both are connected to P1 and in both the Raw feature set is used. Note that again, in these graphs, lower is better.
+  We demonstrate this point by examining two selected experiments. We plot the MDR and the FAR as a function of the threshold value of \(\text{E}_1\) (Figure \ref{fig:detection_easy_example}) and of \(\text{H}_{21}\) (Figure \ref{fig:detection_difficult_example}) as guarded devices. Both are connected to \(\text{P}_1\) and in both the Raw feature set is used. Note that again, in these graphs, lower is better.
   
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/scission_e1_p1_fnr_fpr.png}
-    \caption{FNR and FPR for E1 as guarded as a function of the threshold}
+    \caption{FNR and FPR for \(\text{E}_1\) as guarded as a function of the threshold}
     \label{fig:detection_easy_example}
   \end{figure}
   
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/scission_h21_p1_fnr_fpr.png}
-    \caption{FNR and FPR for H21 as guarded as a function of the threshold}
+    \caption{FNR and FPR for \(\text{H}_{21}\) as guarded as a function of the threshold}
     \label{fig:detection_difficult_example}
   \end{figure}
   
   It is apparent that two cases pose different levels of challenge for the IDS.
-  In case of the E1 transmitter, the MDR and the FAR do not intersect. There is a wide range of thresholds, for which an error rate of 0 can achieved simultaneously for both rates. This makes E1 easily distinguishable from Holt transmitters. In contrast, in the case of H21 transmitter there is only a narrow range of thresholds for which both error rates are small, and the EER is greater than 0. This makes the choice of a right threshold critical.
+  In case of the \(\text{E}_1\) transmitter, the MDR and the FAR do not intersect. There is a wide range of thresholds, for which an error rate of 0 can achieved simultaneously for both rates. This makes \(\text{E}_1\) easily distinguishable from Holt transmitters. In contrast, in the case of \(\text{H}_{21}\) transmitter there is only a narrow range of thresholds for which both error rates are small, and the EER is greater than 0. This makes the choice of a right threshold critical.
   
   Another thing to observe is that in both figures the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. We see that the task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
    
 \subsection{Identifying a Rogue Receiver}
-  In this series of experiments we simulate an attack, where the adversary replaces the existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments. One of the Holts is used as a transmitter, and either P1 or P2 is used a a receiver.
+  In this series of experiments we simulate an attack, where the adversary replaces the existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments. One of the Holts is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a a receiver.
   
   In the testing stage, we simulate an attack by using measurements taken with the same transmitter as in the training stage, but with a different receiver.
   
-  For example, if we choose H10 as the guarded transmitter and P1 as the receiver, words from row 6 in Table \ref{tab:RecordingsSummery} will be labeled as normal and used in the training stage and in the testing stage. Words from rows 19 will be labeled as anomalies and used in the testing stage.
+  For example, if we choose \(\text{H}_{10}\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 6 in Table \ref{tab:RecordingsSummery} will be labeled as normal and used in the training stage and in the testing stage. Words from rows 19 will be labeled as anomalies and used in the testing stage.
   
   The results are shown in Figure \ref{fig:receiver_results}. All feature sets perform worse that they did in identifying rogue transmitters. That is to be expected, since communication systems are designed to mitigate the effect of the receivers on the transmission. The surprising result is that the Generic feature set performs better in this scenario than the Raw feature set, and Poly performs better than both of them. The fact different feature sets are sensitive to changes in different components of the monitored system could be used to our advantage. An IDS could incorporate different anomaly detectors based on different feature sets. When an anomaly is detected, we could then identify the source of the attack by checking which feature set triggered the alarm.
   
@@ -531,13 +549,13 @@
   \end{figure}
   
 \subsection{Identifying an Eavesdropper}
-  In this series of experiments we simulate an attack, where the adversary connects an additional receiver to the bus. The training stage is the same as the training stage in the previous series of experiments, except that only E1 and E2 are used as transmitters.
+  In this series of experiments we simulate an attack, where the adversary connects an additional receiver to the bus. The training stage is the same as the training stage in the previous series of experiments, except that only \(\text{E}_1\) and \(\text{E}_2\) are used as transmitters.
   
   In the testing stage, we simulate an by using measurements taken where a Holt receiver was connected to the bus in addition to the transmitter and receiver from the training stage.
   
-  For example, if we choose E1 as the guarded transmitter and P1 as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} will be labeled as normal and used in the training stage and in the testing stage. Words from rows 2-5 will be labeled as anomalies and used in the testing stage.
+  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} will be labeled as normal and used in the training stage and in the testing stage. Words from rows 2-5 will be labeled as anomalies and used in the testing stage.
   
-  The results are shown in Figure \ref{fig:load_results}. All feature sets perform poorly. By comparing Figures \ref{fig:load_results} and \ref{fig:receiver_results} we learn that adding an additional receiver is affects the electrical characteristics significantly less than replacing the transmitter. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching P1 for P2 (or vice versa) means alternating between long cables, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way:
+  The results are shown in Figure \ref{fig:load_results}. All feature sets perform poorly. By comparing Figures \ref{fig:load_results} and \ref{fig:receiver_results} we learn that adding an additional receiver is affects the electrical characteristics significantly less than replacing the transmitter. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) means alternating between long cables, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way:
   The electrical characteristics are not especially sensitive to the receiver, but rather to the whole transmission line.
   
   \textcolor{gray}{(I feel this is not a very persuasive argument, only based on these measurements. Should I drop it?)}
@@ -555,5 +573,7 @@
 
 \bibliographystyle{IEEEtranS}
 \bibliography{biblio} 
+
+%\tableofcontents
 
 \end{document}
