@@ -54,17 +54,17 @@
   % (I wanted to start with a bang, but couldn't build up the argument. Maybe in the abstract)
   % In recent years we have experienced increasing awareness of the threats of cyber-physical attacks and of the importance of proper cybersecurity. While in the past, it was acceptable to rely on limiting physical access as a security countermeasure, this is no longer considered true. Security experts advise us that everything can be hacked. Conventional wisdom nowadays is to prepare for the worst.
   
-  ARINC 429 is a prominent standard for wired intra-vehicle communication in civil aviation \textcolor{gray}{[cite spec]}. Most active and retired airplanes contain ARINC buses \cite{fuchs2012evolution}, interconnecting the many digital systems that are necessary for the operation of an aircraft: sensors, radars, engines, cockpit controls and more.
+  ARINC 429 is a prominent standard for wired intra-vehicle communication in civil aviation \cite{arinc2004arinc429}. Most active and retired airplanes contain ARINC buses \cite{fuchs2012evolution}, interconnecting the many digital systems that are necessary for the operation of an aircraft: sensors, radars, engines, cockpit controls and more.
   
-  Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. Security on the other hand, as we understand it today, was not a primary concern. At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as wide-spread as it is today. ARINC 429 was designed without any security features, such as encryption or source authentication, that are percieved today as essential to secure communication. In the years that passed the importance of proper cybersecurity was demonstrated in numerous fields, from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote}. However, since 1980 there were no major revisions of the ARINC 429 standard \cite{18937420070101}.
+  Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. Security on the other hand, as we understand it today, was not a primary concern. At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as wide-spread as it is today. ARINC 429 was designed without any security features, such as encryption or source authentication, that are perceived today as essential to secure communication. In the years that passed the importance of proper cybersecurity was demonstrated in numerous fields, from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote}. However, since 1980 there were no major revisions of the ARINC 429 standard \cite{18937420070101}.
   
   AFDX is the successor to ARINC 429. It is ethernet based, So IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fall-back network for the AFDX network, e.g. in the Airbus A380.''
   
   In particular, ARINC 429 has no mechanism for source authentication, so once an adversary has gained physical access to bus, any data they transmit will be accepted.
    
-  One way to add authentication without an industry-wide update of the protocol is to implement it at a higher layer of the protocal stack. Unfortunately, in ARINC 429 there are only 19 data bits in an message. This is typically insufficient for a secure implementation of message code authentication (MAC).
+  One way to add authentication without an industry-wide update of the protocol is to implement it at a higher layer of the protocol stack. Unfortunately, in ARINC 429 there are only 19 data bits in an message. This is typically insufficient for a secure implementation of message code authentication (MAC).
   
-  Intrusion detection systems (IDS) are often employed to retrofit security into similar systems that were designed without security in mind, such as CAN bus in automobile systems \cite{}. An IDS is a software or device that continuously compares the observed behavior of the system to the expected behavior and raises an alarm whenever anomalies are detected. However, intrusion detection systems that analyze only the message content are limited in their ability to identify the sender of a message.  An attacker that is aware of the presence of the IDS might attempt to fool it by sending data that is identical or very similar to normal data.  Therefore, in order to identify the message source, we need to analyze the electrical signal. The guiding principle is that every transmitter is unique, even those of the same model and maker, due to minor defects in production, component tolerances etc., which manifest in the electrical signal. Hence, every signal has inimitable characteristics that can be used to identify the sender. To a lesser extent, the signal is also affected by the receivers and the bus topology. The characteristics can be used to identify changes to passive components on the bus. The process of learning to associate a signal to a transmitter is called hardware fingerprinting.
+  Intrusion detection systems (IDS) are often employed to retrofit security into similar systems that were designed without security in mind, such as CAN bus in automobile systems \cite{muter2011entropy}. An IDS is a software or device that continuously compares the observed behavior of the system to the expected behavior and raises an alarm whenever anomalies are detected. However, intrusion detection systems that analyze only the message content are limited in their ability to identify the sender of a message.  An attacker that is aware of the presence of the IDS might attempt to fool it by sending data that is identical or very similar to normal data.  Therefore, in order to identify the message source, we need to analyze the electrical signal. The guiding principle is that every transmitter is unique, even those of the same model and maker, due to minor defects in production, component tolerances etc., which manifest in the electrical signal. Hence, every signal has inimitable characteristics that can be used to identify the sender. To a lesser extent, the signal is also affected by the receivers and the bus topology. The characteristics can be used to identify changes to passive components on the bus. The process of learning to associate a signal to a transmitter is called hardware fingerprinting.
   
 % \subsection{Motivation}
 %   \color{gray}
@@ -77,9 +77,9 @@
 \subsection{Related Work} \label{RelatedWork}
   To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; wireless radio \cite{ellis2001characteristics, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{dey2014accelprint, das2016tracking}.
   
-  One domain in particular is of special interest to us: controller area network (CAN bus) \cite{}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN. Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
+  One domain in particular is of special interest to us: controller area network (CAN bus) \cite{bosch1991canbus}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN. Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
   
-  In recent years a number of successful cyber attacks were demonstrated on cars \cite{}, motivating researchers to search for new ways to hinder attacks.
+  In recent years a number of successful cyber attacks were demonstrated on cars \cite{miller2015remote}, motivating researchers to search for new ways to hinder attacks.
   
   % like ARINC 429, straightforward authentication tools like HMAC are an unlikely solution \textcolor{gray}{(elaborate?)}. 
   
@@ -111,7 +111,7 @@
 \section{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
 \subsection{The ARINC 429 Standard}
-  ARINC Specification 429 \cite{}, also named ``Mark 33 Digital Transfer System (DITS)'', is a standard of the avionics industry. It defines a protocol for the communication between avionics system elements over a local area network. First published in 1977 by Aeronautical Radio, Inc., it has since become one of the most widely used data bus protocols in civil aircrafts \cite{}. The protocol encompasses different layers: from the physical requirements, through the electronic characteristics of the signal, data format and ending with a file transfer technique.
+  ARINC Specification 429 \cite{arinc2004arinc429}, also named ``Mark 33 Digital Transfer System (DITS)'', is a standard of the avionics industry. It defines a protocol for the communication between avionics system elements over a local area network. First published in 1977 by Aeronautical Radio, Inc., it has since become one of the most widely used data bus protocols in civil aircrafts \cite{MoirIan2013DBN}. The protocol encompasses different layers: from the physical requirements, through the electronic characteristics of the signal, data format and ending with a file transfer technique.
 
   We continue with a short description of those parts of the specifications, which are relevant to this paper. In ARINC 429 the communicating entities are called line-replaceable units (LRU). Data is transmitted over a single twisted and shielded pair of wires. The cable shield is be grounded on both ends. The lines are denoted Line A and Line B. Differential signaling is used, meaning that the signal is the voltage difference from Line A to Line B, rather than the difference from one wire to ground. Bipolar return-to-zero (BRTZ) modulation is used as a line protocol. BRTZ is a tri-level state modulation: we refer to the three voltage levels as ``HI'', ``LO'' and ``NULL''. A binary 1 is encoded as a positive voltage pulse ``HI'', and a binary 0 is encoded as a negative voltage pulse ``LO''. In between transmissions, the voltage drops to 0V, ``NULL''. Every ``HI'' and every ``LO'' are preceded and are followed by a ``NULL'', even if repeating bit values are transmitted consecutively. The differential output voltage from line A to line B is $10V \pm 1$ in ``HI'' mode, $0 \pm 0.5$ in ``NULL'' mode and $-10V \pm 1$ in ``LO'' mode.  Figure \ref{fig:word_example} shows a recording of a transmission on an ARINC 429 data bus.
   
@@ -121,12 +121,12 @@
    
   The protocol allows a choice of one of two bit rates: Slow, at 12.0 to 14.5 Kbits/sec, and fast, at 100 Kbits/sec. The bit rate on a bus is fixed and maintained within \%1. The signal is self-clocking.
   
-  MIL-STD-1553 \cite{} is the military bus standard alternative of ARINC 429.
+  MIL-STD-1553 \cite{united1986milstd1553} is the military bus standard alternative of ARINC 429.
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Traces/word.png}
-    \caption{ARINC 429 bus showing the voltage difference between twisted pair for a 32 bit word}
+    \includegraphics[width=1.0\linewidth, angle=0]{Traces/bits.png}
+    \caption{ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. counter clockwise starting from bottom left: Line A, Line B, difference}
     \label{fig:word_example}
   \end{figure}
   
@@ -185,7 +185,7 @@
 \subsection{Novelty Detection per Segment}
   We perform per segment anomaly detection. There are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in Section \ref{SignalSegmentation}. A segment's characteristics depend on its type. Therfore we opted to train a different novelty detector for each type of segment.
   
-  There are many outlier and novelty detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{}, One-Class SVM \cite{} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
+  There are many outlier and novelty detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
   
   For the novelty detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this paper.
   
@@ -260,7 +260,7 @@
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Traces/segmentation.png}
-    \caption{A segmentation example of the bits 001011}
+    \caption{A segmentation example of the bits 01}
     \label{fig:SegmentationTrace}
   \end{figure}
   
@@ -277,7 +277,7 @@
   This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same length. The length varies depending on the the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{TheDataSet}) the number of samples per segment is quite low - between 4-24 (See Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
   
 \subsubsection{Generic Time-Domain Feature Set}
-  As discussed in Section [\ef{RelatedWork}], in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
+  As discussed in Section \ref{RelatedWork}, in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids, kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
   
   These features are of a generic nature, in the sense that the shape of the signal does not affect the extraction process. Due to this property, it is possible to apply the same features in different fields of research.
   
@@ -367,12 +367,12 @@
 \section{Performance Evaluation}
 
 \subsection{The Data Set} \label{TheDataSet}
-  To the best of our knowledge, there is no publicly available data set that contains high rate samples of ARINC 429 protocol. We built our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{}.
+  To the best of our knowledge, there is no publicly available data set that contains high rate samples of ARINC 429 protocol. We built our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.
   
   We sampled two types of transmitters:
   \begin{enumerate}
-     \item A m4K429RTx test equipment from \textit{Excalibur Systems} \cite{}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
-     \item HI-8597PSIF chips on HI-3220PQ Evaluation Boards, manufactured by \textit{Holt Integrated Circuits INC.} \cite{}. We used one of two boards, each with 4 transmitters on 4 separate chips. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
+     \item A M4K429RTx test equipment from \textit{Excalibur Systems} \cite{excalibur2019m4k429rtx}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
+     \item ADK-3220 Evaluation board, manufactured by \textit{Holt Integrated Circuits INC.} \cite{holt2019evaluation}. The board contains a HI-3220PQ ARINC 429 Protocol IC with 16 integrated line receivers, and 8 HI-8597PSIFF line drivers chips. We used one of two boards, each with 4 transmitters on 4 separate chips. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
   \end{enumerate}
   
   The transmitters were connected to one or more of the following receivers:
@@ -389,7 +389,7 @@
     \centering
     %Use 1 for the two columns
     \includegraphics[width=1.0\linewidth, angle=0]{Images/setup_3}
-    \caption{The Holt evaluation board on the left, andthe fabricated connector board on the right}
+    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
     \label{fig:SetupImage}
   \end{figure}
   
@@ -507,15 +507,15 @@
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/scission_e1_p1_fnr_fpr.png}
-    \caption{FNR and FPR for \(\text{E}_1\) as guarded as a function of the threshold}
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_e1_p1_mdr_far.png}
+    \caption{FAR and MDR for \(\text{E}_1\) as guarded as a function of the threshold}
     \label{fig:detection_easy_example}
   \end{figure}
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/scission_h21_p1_fnr_fpr.png}
-    \caption{FNR and FPR for \(\text{H}_{21}\) as guarded as a function of the threshold}
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_h21_p1_mdr_far.png}
+    \caption{FAR and MDR for \(\text{H}_{21}\) as guarded as a function of the threshold}
     \label{fig:detection_difficult_example}
   \end{figure}
   
@@ -525,7 +525,7 @@
   Another thing to observe is that in both figures the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
    
 \subsection{Identifying a Rogue Receiver Switch}
-  In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments. One of the Holts is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a a receiver.
+  In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments. One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a a receiver.
   
   In the testing stage, we simulate an attack by using measurements taken with the same transmitter as in the training stage, but with a different receiver.
   
