@@ -35,15 +35,16 @@
 \maketitle
 
 \begin{abstract}
-  ARINC 429 is the most common data bus in use today in civil avionics. Despite its widespread use, it is not up to par with modern security requirements, as it did not undergo any major revisions since the 1980s. Specifically, the protocol lacks it lacks source authentication. An adversary with physical access to the bus is freely able to spread malicious content, as the receivers have no method of verifying the authenticity of messages.
+  ARINC 429 is the most common data bus in use today in civil avionics. Despite its widespread use, it is not up to par with modern security requirements, as it did not undergo any major revisions since the 1980s. Specifically, the protocol lacks any form of source authentication. An adversary with physical access to the bus is freely able to spread malicious content, as the receivers have no method of verifying the authenticity of messages.
   
-  Updating the protocol would close off security loopholes in new aircrafts, but would still require thousands of airplanes that are already in service to be modified to the fit the new standard. The cost of such an operation make this an unappealing solution from a business point of view, and thus an unlikely one. Other options have to be explored.
+  Updating the protocol would close off security loopholes in new aircrafts, but would require thousands of airplanes to be modified. The cost of such an operation make this an unappealing solution. Other options have to be explored.
   
-  We propose an intrusion detection system that utilizes a hardware fingerprinting approach for sender identification, that we designed specifically for the ARINC 429 data bus. Changes in hardware, such as such as replacing the transmitting device by a rogue one, modify the the electric signal of the transmission. By exploiting this observation, we are able to detect technician attacks. Our proposed method only requires the attachment of a standard-compliant monitoring unit to the bus. It does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
+  We propose an intrusion detection system that utilizes a hardware fingerprinting approach for sender identification, that we designed specifically for the ARINC 429 data bus. Our approach relies on the observation that changes in hardware, such as replacing the transmitting device by a rogue one, modify the the electric signal of the transmission. By exploiting this observation, we are able to detect technician attacks. Our proposed method only requires the attachment of a standard-compliant monitoring unit to the bus. It does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
   
   Because we rely on the analog properties, and not on the digital content of the transmissions, we are able to detect the switch as soon as it occurs, even if the data that is being transmitted is completely normal. Thus, we are able to preempt the attack before any damage is caused.
   
-  In this paper we evaluate the performance of our intrusion detection system against different adversary models. We find it especially suitable to protecting against rogue transmitters.
+  In this paper we evaluate the performance of our intrusion detection system against different adversary models. For this purpose we collected a data corpus of ARINC 429 data traces, which may be of independent interest since, to the best of our knowledge, no public corpus is available.
+  We find that our intrusion detection system is especially suitable to protecting against rogue transmitters.
   
 \end{abstract}
 
@@ -51,11 +52,11 @@
 \section{Introduction}
 \subsection{Background}
   
-  ARINC 429 is a prominent standard for wired intra-vehicle communication in civil aviation \cite{arinc2004arinc429}. Most active and retired airplanes contain ARINC buses \cite{fuchs2012evolution}, interconnecting the many digital systems that are necessary for the operation of an aircraft: sensors, radars, engines, cockpit controls and more.
+  ARINC 429 \cite{arinc2004arinc429} is a prominent standard for wired intra-vehicle communication in civil aviation. Most active and retired airplanes contain ARINC buses \cite{fuchs2012evolution}, interconnecting the many digital systems that are necessary for the operation of an aircraft: sensors, radars, engines, cockpit controls and more.
   
   Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. Security on the other hand, as we understand it today, was not a primary concern. At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as widespread as it is today. ARINC 429 was designed without any security features, such as encryption or source authentication, that are perceived today as essential to secure communication. In the years that passed the importance of proper cybersecurity was demonstrated in numerous fields, from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote}. However, since 1980 there were no major revisions of the ARINC 429 standard \cite{18937420070101}.
   
-  AFDX is the successor to ARINC 429. It is ethernet based, So IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fall-back network for the AFDX network, e.g. in the Airbus A380.''
+  AFDX is the successor to ARINC 429. It is ethernet based, so IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fall-back network for the AFDX network, e.g. in the Airbus A380.''
   
   In particular, ARINC 429 has no mechanism for source authentication, so once an adversary has gained physical access to bus, any data they transmit will be accepted.
    
@@ -63,7 +64,7 @@
   
   Intrusion detection systems (IDS) are often employed to retrofit security into similar systems that were designed without security in mind, such as CAN bus in automobile systems \cite{muter2011entropy}. An IDS is a software or device that continuously compares the observed behavior of the system to the expected behavior and raises an alarm whenever anomalies are detected. However, intrusion detection systems that analyze only the message content are limited in their ability to identify the sender of a message.  An attacker that is aware of the presence of the IDS might attempt to fool it by sending data that is identical or very similar to normal data.  Therefore, in order to identify the message source, we need to analyze the electrical signal. The guiding principle is that every transmitter is unique, even those of the same model and maker, due to minor defects in production, component tolerances etc., which manifest in the electrical signal. Hence, every signal has inimitable characteristics that can be used to identify the sender. To a lesser extent, the signal is also affected by the receivers and the bus topology. The characteristics can be used to identify changes to passive components on the bus. The process of learning to associate a signal to a transmitter is called hardware fingerprinting.
   
-  It is important to note that HW fingerprinting cannot replace the use of data-driven IDSs, as HW fingerprinting only detects attacks, where one transmitter sends messages, that are normally sent by another transmitter. On the other hand, an IDS that inspects only the data is at risk of being fooled by a clever adversary that mimics normal behavior. Using both methods in tandem supplies protects against the widest range of attacks. Exploring content-based detection is beyond the scope of this paper.
+  It is important to note that hardware fingerprinting cannot replace the use of content-based IDSs, as hardware fingerprinting only detects attacks, where one transmitter sends messages, that are normally sent by another transmitter. On the other hand, an IDS that inspects only the data is at risk of being fooled by a clever adversary that mimics normal behavior. Using both methods in tandem supplies protection against the widest range of attacks. Exploring content-based detection is beyond the scope of this paper.
   
 % \subsection{Motivation}
 %   \color{gray}
@@ -84,11 +85,11 @@
   
   In \cite{cho2016fingerprinting} the authors propose using the measured arrival time of periodic messages to estimate characteristics of a transmitter's internal clock, which are then used as fingerprints. It has been demonstrated in \cite{sagong2018cloaking} that timing features can be emulated by an adversary, and therefore might not be a reliable means for identification.
   
-  In \cite{murvay2014source} the authors have demonstrated that transmitters of CAN messages can be identified by the signal's electrical characteristics. They propose using the CAN message ID field of the electric signal as a fingerprint. They also observed that the electrical characteristics remain stable for a period of months in a lab setup.
+  In \cite{murvay2014source} the authors demonstrate that transmitters of CAN messages can be identified by the signal's electrical characteristics. They propose using the CAN message ID field of the electric signal as a fingerprint. They also observed that the electrical characteristics remain stable for a period of months in a lab setup.
   
   In \cite{choi2018identifying} the authors suggest using time domain and frequency domain features extracted from the CAN ID field as fingerprints. They perform feature selection using the mutual information criterion in order to reduce the number of used features. Machine learning (ML) techniques are utilized for classification (SVM, NN and BDT).
   
-  In \cite{cho2017viden} the authors devise a method for generating fingerprints based on the order statistics of voltage levels. The algorithm adapts to power supply fluctuations and temperature changes by constantly updating the fingerprints based on new samples.
+  In \cite{cho2017viden} the authors devise a method for generating fingerprints based on the order statistics of voltage levels. The algorithm adapts to fluctuations in power supply levels and to changes in temperature by constantly updating the fingerprints based on new samples.
   
   In \cite{choi2018voltageids} the authors construct the fingerprints by extracting time domain and frequency domain features from selected parts of a message. They perform feature selection with sequential forward selection, and SVM and BDT for classification. Incremental learning techniques \cite{diehl2003svm} are employed in order to compensate for temporal changes of the characteristics.
   
@@ -99,20 +100,22 @@
 \subsection{Contributions}
   We propose the use of hardware fingerprinting in order to imbue ARINC 429 buses with source authentication capabilities. Applying the method only requires the attachment of a standard-compliant monitoring unit to the bus. This method does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
   
-  We describe the adversary models that our method is effective at protecting against. We design an intrusion detection system with HW fingerprinting capabilities, and evaluate its performance in these attack scenarios.
+  We describe the adversary models that our method is effective at protecting against. We then design an intrusion detection system with hardware fingerprinting capabilities, and evaluate its performance in these attack scenarios.
   
-  We explore the ability to distinguish between devices from different vendors and between devices of the same model. We find that it is possible to distinguish between devices from different vendors by their electric signal. We also find that our method can distinguish between devices from the same vendor and model, which are supposedly identical, and we see that withing this group, some devices are more unique that others.
+  We explore the ability to distinguish between devices from different vendors and between devices of the same model. We find that it is possible to perfectly distinguish between devices from different vendors by their electric signal, with close to zero false alarms. We also find that our method can distinguish between devices from the same vendor and model, which are supposedly identical, with low false alarm rates. We see that within this group, some devices are more unique that others.
   
-  We explore the effect of receivers and transmission lines on performance. We see that adding a receiver does not yield a significant change in the signal. However, switching a receiver, together with some length of the transmission line, is detectable by our method.
+  We explore the effect of receivers and transmission lines on performance. We see that adding a receiver does not yield a significant change in the signal. However, switching a receiver by another receiver, when combined with a change to the transmission line, is detectable by our method.
   
-  We compare different feature sets under different the adversarial models. We show that using the raw samples, and not extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
+  We compare different feature sets under different the adversarial models. Somewhat surprisingly, we find that using the raw samples, without extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
   
-\section{Preliminaries}
+  Organization of this paper: In Section \ref{Preliminaries} we describe the ARINC protocol and the adversary model. In Section \ref{Approach} we outline our approach. Section \ref{SignalSegmentation} describes our signal segmentation process. Section \ref{FeatureSets} covers the various feature sets we considered. Section \ref{PerformanceEvaluation} describes an extensive performance evaluation, and we conclude with Section \ref{Conclusions}.
+  
+\section{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
 \subsection{The ARINC 429 Standard}
   ARINC Specification 429 \cite{arinc2004arinc429}, also named ``Mark 33 Digital Transfer System (DITS)'', is a standard of the avionics industry. It defines a protocol for the communication between avionics system elements over a local area network. First published in 1977 by Aeronautical Radio, Inc., it has since become one of the most widely used data bus protocols in civil aircrafts \cite{MoirIan2013DBN}. The protocol encompasses different layers: from the physical requirements, through the electronic characteristics of the signal, data format and ending with a file transfer technique.
 
-  We continue with a short description of those parts of the specifications, which are relevant to this paper. In ARINC 429 the communicating entities are called line-replaceable units (LRU). Data is transmitted over a single twisted and shielded pair of wires. The cable shield is be grounded on both ends. The lines are denoted Line A and Line B. Differential signaling is used, meaning that the signal is the voltage difference from Line A to Line B, rather than the difference from one wire to ground. Bipolar return-to-zero (BRTZ) modulation is used as a line protocol. BRTZ is a tri-level state modulation: we refer to the three voltage levels as ``HI'', ``LO'' and ``NULL''. A binary 1 is encoded as a positive voltage pulse ``HI'', and a binary 0 is encoded as a negative voltage pulse ``LO''. In between transmissions, the voltage drops to 0V, ``NULL''. Every ``HI'' and every ``LO'' are preceded and are followed by a ``NULL'', even if repeating bit values are transmitted consecutively. The differential output voltage from line A to line B is $10V \pm 1$ in ``HI'' mode, $0 \pm 0.5$ in ``NULL'' mode and $-10V \pm 1$ in ``LO'' mode.  Figure \ref{fig:word_example} shows a recording of a transmission on an ARINC 429 data bus.
+  We continue with a short description of those parts of the specifications, which are relevant to this paper. In ARINC 429 the communicating entities are called line-replaceable units (LRU). Data is transmitted over a single twisted and shielded pair of wires. The cable shield is grounded on both ends. The lines are denoted Line A and Line B. Differential signaling is used, meaning that the signal is the voltage difference from Line A to Line B, rather than the difference from one wire to ground. Bipolar return-to-zero (BRTZ) modulation is used as a line protocol. BRTZ is a tri-level state modulation: we refer to the three voltage levels as ``HI'', ``LO'' and ``NULL''. A binary 1 is encoded as a positive voltage pulse ``HI'', and a binary 0 is encoded as a negative voltage pulse ``LO''. In between transmissions, the voltage drops to 0V, ``NULL''. Every ``HI'' and every ``LO'' are preceded and are followed by a ``NULL'', even if repeating bit values are transmitted consecutively. The differential output voltage from line A to line B is $10V \pm 1$ in ``HI'' mode, $0 \pm 0.5$ in ``NULL'' mode and $-10V \pm 1$ in ``LO'' mode.  Figure \ref{fig:word_example} shows a recording of a transmission on an ARINC 429 data bus.
   
   Data is transmitted in words that are 32-bit long. The bits are transmitted in the following order, from first to last: 8, 7, ..., 2, 1, 9, 10, ..., 32. This order is a legacy from older systems. In this paper, words are interpreted as though an MSB-first transmission order is in place.
   
@@ -125,7 +128,7 @@
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Traces/bits.png}
-    \caption{ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. counter clockwise starting from bottom left: Line A, Line B, difference}
+    \caption{ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal}
     \label{fig:word_example}
   \end{figure}
   
@@ -148,9 +151,9 @@
   In this attack type of attack the adversary replaces a legitimate receiver LRU by or rogue one, or adds a rogue receiver LRU without detaching another LRU. By doing this the adversary gains access to the transmitted data, which might be otherwise inaccessible, and may use this data to cause harm through another attack channel.
 
 \subsubsection{An Additional Transmitter}
-  This type of attack is actually not possible to perform on the ARINC bus, wherein the adversary is adding another transmitter LRU without detaching the legitimate transmitter. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus violates the protocol, therefore an adversary cannot simply add a transmitter to the bus. Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by software only, since its wiring does not permit it. Thus, the adversary must use physical access to the equipment in order to mount the attack: The adversary needs to make sure that the legitimate transmitter is disconnected, before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitting during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
+  This type of attack is actually not possible to perform on the ARINC bus, wherein the adversary is adding another transmitter LRU without detaching the legitimate transmitter. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus violates the protocol, therefore an adversary cannot simply add a transmitter to the bus. Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by software only, since its wiring does not permit it. Thus, the adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitting during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
 
-\section{The Hardware Fingerprinting Approach}
+\section{The Hardware Fingerprinting Approach} \label{Approach}
   The IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
   
 \subsection{Advantage Over Content Based IDSs}
@@ -163,11 +166,11 @@
   
   \begin{enumerate}
     \item \textbf{[Acquisition]}
-          We sample both lines of the bus at a sampling rate that is 50 times higher than the rate which is needed in order to extract the bit values. We used a sample rate of 5 MSa/s. The differential signal is received from subtracting the samples of line B from the samples of line A.
+          We sample both lines of the bus at a sampling rate that is 50 times higher than the bit rate. We used a sample rate of 5 MSa/s. The differential signal is obtained by subtracting the samples of line B from the samples of line A.
     \item \textbf{[Segmentation]}
-          The word is split into 127 segments of 10 different types, based on voltage levels. The purpose of the segmentation is to eliminate the effect of the transmitted data, the content of the word, on the final decision of the anomaly detector. See section \ref{SignalSegmentation} for details.
+          The word is split into 127 segments of 10 different types, based on voltage levels. The purpose of the segmentation is to eliminate the effect of the transmitted data, the content of the word, on the final decision of the anomaly detector. See Section \ref{SignalSegmentation} for details.
     \item \textbf{[Feature Extraction]}
-          We extract multiple features from each segment. See section \ref{FeatureSets} for details.
+          We extract multiple features from each segment. See Section \ref{FeatureSets} for details.
     \item \textbf{[Anomaly Detection Per Segment]}
           The features from each segment are fed into a trained anomaly detector. Each \textit{segment} is marked as either ``normal'' or ``anomaly''.
     \item \textbf{[Voting]}
@@ -179,11 +182,11 @@
   
   There are many outlier and novelty detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
   
-  For the novelty detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this paper.
+  For the novelty detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} Python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this paper.
   
   LOF is a density based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (feature vector), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average distance of the point from its neighbors.
   
-  There are several hyper-parameters for the LOF algorithm. In all cases we used the default parameters provided by implementation. For the number of neighbors examined when calculating the LOF the default is 20. We used the Euclidean metric for the distance measure. The threshold on the local outlier factor that defines an anomaly is automatically set so 10\% of samples in the \textit{training set} are outliers.
+  There are several hyper-parameters for the LOF algorithm. In all cases we used the default parameters provided by the implementation. For the number of neighbors examined when calculating the LOF the default is 20. We used the Euclidean metric for the distance measure. The threshold on the local outlier factor that defines an anomaly is automatically set so that 10\% of samples in the \textit{training set} are outliers.
   
   We constructed a separate novelty detector for each type of segment. Each segment is fed individually into its appropriate LOF novelty detector. The LOF outputs its determination regarding the source of the segment, either `normal' or `anomaly'.
   
@@ -203,11 +206,11 @@
 \section{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
-  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a 1 bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels}.
+  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels}.
   
-  Thus, we split every 32-bit word into 127 segments. Note that there are only 127 segments, not 128, because the last bit is followed by a long ``NULL'' that lasts until the next word and has a unique shape. We do not consider this segment as belonging to any word.
+  Thus, we split every 32-bit word into 127 segments. Note that there are only 127 segments, not 128, because the last bit is followed by a long ``NULL'' that lasts until the next word and has a unique shape. We do not associate this segment with any word.
   
-  The segmentation is performed in the following manner. A segment starts where the voltage level of the signal rises above / falls below a certain threshold, and ends where it falls below / rises above another threshold. Four different thresholds are employed in order to produce a stabling hysteresis effect. We denote them as follows, and use them and their negative to define segment boundaries:
+  The segmentation is performed in the following manner. A segment starts where the voltage level of the signal rises above / falls below a certain threshold, and ends where it falls below / rises above another threshold. 4 different thresholds are employed in order to produce a stabling hysteresis effect. We denote them as follows, and use them and their negative to define segment boundaries:
   
   \begin{align*}
     V_{l_1} = 2.0V \\
@@ -261,7 +264,7 @@
   
 \subsubsection{Raw Time-Domain Samples}
 
-  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same length. The length varies depending on the the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (See Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
+  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
   
 \subsubsection{Generic Time-Domain Feature Set}
   As discussed in Section \ref{RelatedWork}, in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids, kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
@@ -308,7 +311,7 @@
 
   In this feature set there are different features for each segment type.
   
-  We observed that the ``HI'' segments contain an overshoot followed by ripples. We denote by \((t_1, v_1), (t_2, v_2), (t_2, v_2)\) the time and voltage level at the first local maxima (the overshoot), then the first local minima that follows and then the first local maxima that follows. Time is measured from the beginning of the segment. The features we take are the above 6 values, in addition to the differences in time and voltage of the second and third points from the first point: \(t_2-t_1, v_2-v_1, t_3-t_1, v_3-v_1\). The features in the ``LO'' segments are a mirror image of the features in the ``HI'' segment.
+  We observed that the ``HI'' segments contain an overshoot followed by ripples. We denote by \((t_1, v_1), (t_2, v_2), (t_3, v_3)\) the time and voltage level at the first local maxima (the overshoot), then the first local minima that follows and then the first local maxima that follows. Time is measured from the beginning of the segment. The features we take are the above 6 values, in addition to the differences in time and voltage of the second and third points from the first point: \(t_2-t_1, v_2-v_1, t_3-t_1, v_3-v_1\). The features in the ``LO'' segments are a mirror image of the features in the ``HI'' segment.
   
   For ``NULL, HI to HI'' and ``NULL, LO to LO'' we only take the time and voltage levels at the overshoot \((t_1, v_1)\): not all segments of these types in the data set have ripples.
   
@@ -351,15 +354,15 @@
   
  
 %%%%%%%%%%%%%%%%%%
-\section{Performance Evaluation}
+\section{Performance Evaluation} \label{PerformanceEvaluation}
 
 \subsection{The Data Set} \label{TheDataSet}
-  To the best of our knowledge, there is no publicly available data set that contains high rate samples of ARINC 429 protocol. We built our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.
+  To the best of our knowledge, there is no publicly available data set that contains high rate voltage samples of ARINC 429 protocol. We gathered our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.
   
   We sampled two types of transmitters:
   \begin{enumerate}
      \item An M4K429RTx test equipment from \textit{Excalibur Systems} \cite{excalibur2019m4k429rtx}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
-     \item ADK-3220 Evaluation board, manufactured by \textit{Holt Integrated Circuits INC.} \cite{holt2019evaluation}. The board contains a HI-3220PQ ARINC 429 Protocol IC connected to 8 HI-8597PSIFF line drivers chips. We use 4 of the transmitters and two different boards. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
+     \item ADK-3220 Evaluation boards, manufactured by \textit{Holt Integrated Circuits INC.} \cite{holt2019evaluation}. The board contains a HI-3220PQ ARINC 429 Protocol IC connected to 8 HI-8597PSIFF line drivers chips. We use 4 of the transmitters and two different boards. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
   \end{enumerate}
   
   The transmitters were connected to one or more of the following receivers:
@@ -380,7 +383,7 @@
     \label{fig:SetupImage}
   \end{figure}
   
-  All the devices transmitted the same data. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Note that these words include all the possible segment types. By transmitting the same data on all devices we make sure that in our experiments the IDS cannot unintentionally use the message content to make its decisions.
+  All the devices transmitted the same data at a bit rate of 100 Kbits/sec. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Note that these words include all the possible segment types. By transmitting the same data on all devices we make sure that in our experiments the IDS cannot unintentionally use the message content to make its decisions.
   
   In addition to the recordings from different transmitter-receiver pairs, we recorded \(\text{E}_1\) and \(\text{E}_2\) transmitting to \(\text{P}_1\) and \(\text{P}_2\) respectfully, with different Holt devices attached as additional receivers.
   
@@ -450,24 +453,24 @@
   \end{table}
   
 \subsection{Methodology}
-  In order to evaluate the performance of our algorithm, we performed a series of experiments. In each experiment we select one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we select a group of other devices as rogue devices, and their measurements are labeled as anomalies, representing the state of the system after it has been changed by an adversary.
+  In order to evaluate the performance of our algorithm, we performed an extensive series of experiments. In each experiment we select one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we select a group of other devices as rogue devices, and their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary.
   
   Our numerical analysis of the results starts with calculating the false alarm and misdetection rates (FAR \& MDR respectively) as functions of the voting threshold. We then find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
   
    In our graphs we convert the ``EER to false alarms per second'' (FA/Sec) under normal operation (system unaltered by an adversary). This gives a more concrete meaning to the numbers. The FA/Sec is calculated by multiplying the EER by the message rate, and is the inverse of mean time between failures. Note that each word lasts 36 bit times, because the protocol mandates a minimum inter-word gap of at least 4 bit times.
   
-  \[FA/Sec = \frac{1}{MTBF} = EER \cdot \frac{100 \sfrac{kbits}{sec}}{36bits}\]
+  \[FA/Sec = \frac{1}{MTBF} = EER \cdot \frac{100 \sfrac{Kbits}{sec}}{36bits}\]
   
-  Note that since the FA/Sec is linear in the EER, we can discuss the bar graph as though it displays EER when giving a qualitative analysis.
+  Note that since the FA/Sec is linear in the EER, we can discuss the graphs as though they display the EER when giving a qualitative analysis.
   
   In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. The measurements labeled as anomalies are not present in the training set.
   
 \subsection{Identifying a Rogue Transmitter}
-  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we we designate one of the our transmitters as the legitimate device to be guarded. In addition we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
+  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the our transmitters as the legitimate device to be guarded. In addition we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
   
   We then test the trained IDS. We simulate a rogue transmitter LRU by using measurements of other transmitters connected to the chosen receiver as anomalies. We remind the reader that during each measurement, only one transmitter is connected to the bus.
   
-  Only the Holt devices were used to simulate rogue transmitters, regardless of regardless of whether the guarded transmitter is an Excalibur (\(\text{E}_1\) or \(\text{E}_2\)) or a Holt (\(\text{H}_{10}\), ..., \(\text{H}_{13}\), \(\text{H}_{20}\), ..., \(\text{H}_{23}\)).
+  Only the Holt devices were used to simulate rogue transmitters, regardless of whether the guarded transmitter is an Excalibur (\(\text{E}_1\) or \(\text{E}_2\)) or a Holt (\(\text{H}_{10}\), ..., \(\text{H}_{13}\), \(\text{H}_{20}\), ..., \(\text{H}_{23}\)).
   
   For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} are labeled as normal and used in the training stage and in the testing stage. Words from rows 6-13 are labeled as anomalies and used in the testing stage.
   
@@ -475,7 +478,7 @@
   
   We repeat this process for four feature sets with all pairs of guarded transmitter and receiver. We end up with 18 experiments per feature set.
   
-  The results are presented as a box plot in Figure \ref{fig:rogue_transmitter_results}. The x axis splits the results according to the used feature set. The y axis shows the false alarms per second, and 0 is the perfect score. The horizontal line in the middle of the box and the number written next to it indicate the median. The bottom and top boundaries of the box indicate the 1st and 3rd quartiles respectively. The horizontal lines outside of the box (the whiskers) are placed on the minimum and maximum values.
+  The results are presented as a box plot in Figure \ref{fig:rogue_transmitter_results}. The x axis splits the results according to the used feature set. The y axis shows the false alarms per second, and 0 is the perfect score. The horizontal line in the middle of the box and the number written next to it indicate the median. The bottom and top boundaries of the box indicate the 1st and 3rd quartiles respectively. The horizontal lines outside of the box (the whiskers) indicate the minimum and maximum values.
   
   \begin{figure}[t]
     \centering
@@ -484,13 +487,20 @@
     \label{fig:rogue_transmitter_results}
   \end{figure}
   
-  The figure shows that intruder detection yields the best results in term of EER when we use the Raw feature set. Both the median and the spread of the values is low. The EER values for the Generic feature set are slightly more spread out, and the median is greater. The Polynomial and the Hand-Crafted feature sets are clearly inferior.
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_receiver_switch.png}
+    \caption{Comparing the feature sets for identifying a rogue receiver switch}
+    \label{fig:receiver_results}
+  \end{figure}
   
-  The Generic and the Raw feature sets have comparable performance, with Raw being slightly better with a median EER value of 0.12\% compared to 0.78\%. Since there is no significant reduction in memory costs from using the Generic feature set (recall Table \ref{tab:feature_set_sizes}), we conclude that in our case it is best to use the raw voltage samples, since in the tradeoff between memory/runtime and performance, with the Generic set we spend significant effort to extract the features, and obtain no gain in comparison to the raw signal.
+  The figure shows that intruder detection yields the best results in term of EER when we use the Raw feature set. Both the median and the spread of the values are low. The EER values for the Generic and Polynomial feature sets are slightly more spread out, and the median is greater. The Hand-Crafted feature set is clearly inferior.
   
-  We point out that there is a correlation between the number of features in the set and the performance of the feature set. The feature sets with reduced performance, namely the Hand-Crafted and Polynomial sets, have significantly fewer features for some segments - as few as 2 - and the Hand-Crafted sets totally ignores two segment types. The more features there are, the more expressive the model is. Perhaps the two feature sets would perform better if they included additional features.
+  The Generic, Raw and Polynomial feature sets have comparable performance, with Raw being slightly better with a median EER value of 0.12\% compared to 0.32\% and 0.19\% for the Generic and Polynomial feature sets. Since there is no significant reduction in memory costs from using the Generic feature set (recall Table \ref{tab:feature_set_sizes}), we conclude that in our case it is best to use the raw voltage samples, since in the tradeoff between memory/runtime and performance, with the Generic set we spend significant effort to extract the features, and obtain no gain in comparison to the raw signal.
   
-  Interestingly, for all feature sets there are experiments which reached a perfect EER value of 0. The guarded transmitters in these experiments are \(\text{E}_1\), \(\text{E}_2\) and \(\text{H}_{10}\). Why do we achieve these results for \(\text{E}_1\) and \(\text{E}_2\)? We point out that we only use the Holt boards to simulate rogue devices. This means that in experiments where \(\text{E}_1\) and \(\text{E}_2\) are used as guarded devices, the IDS is tasked with differentiating between a guarded device and rogue devices that are from completely different models. We expect devices from different models to have different characteristics. However, we achieve \(\text{EER}=0\) for the Holt device \(\text{H}_{10}\) as a guarded device as well - indicating that even for the same manufacturer there are significant differences in the hardware fingerprint.
+  We point out that there is a correlation between the number of features in the set and the performance of the feature set. The feature sets with reduced performance, namely the Hand-Crafted and Polynomial sets, have significantly fewer features for some segments - as few as 2 - and the Hand-Crafted sets totally ignores two segment types. The more features there are in the set, the more expressive the model is. Perhaps the two feature sets would perform better if they included additional features.
+  
+  Interestingly, for all feature sets there are experiments which reached a perfect EER value of 0. The guarded transmitters in these perfect experiments are \(\text{E}_1\), \(\text{E}_2\) and \(\text{H}_{10}\). Why do we achieve these results for \(\text{E}_1\) and \(\text{E}_2\)? We point out that we only use the Holt boards to simulate rogue devices. This means that in experiments where \(\text{E}_1\) and \(\text{E}_2\) are used as guarded devices, the IDS is tasked with differentiating between a guarded device and rogue devices that are manufactured by different vendors. We expect devices from different models to have different characteristics. However, we achieve \(\text{EER}=0\) for the Holt device \(\text{H}_{10}\) as a guarded device as well - indicating that even for the same manufacturer there are significant differences in the hardware fingerprint of individual devices.
   
   We demonstrate this point by examining two selected experiments. We plot the MDR and the FAR as a function of the threshold value using \(\text{E}_1\) (Figure \ref{fig:detection_easy_example}) and of \(\text{H}_{21}\) (Figure \ref{fig:detection_difficult_example}) as guarded devices. Both are connected to \(\text{P}_1\) and in both figures the Raw feature set is used. Note that again, in these graphs, lower is better.
   
@@ -509,7 +519,7 @@
   \end{figure}
   
   Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} show that the two cases pose different levels of challenge for the IDS.
-  In case of the \(\text{E}_1\) transmitter (Figure \ref{fig:detection_easy_example}), the MDR and the FAR do not intersect. In fact, the MDR overlaps the left-side boundary of the figure. There is a wide range of thresholds, for which an error rate of 0 can achieved simultaneously for both rates. This makes \(\text{E}_1\) easily distinguishable from Holt transmitters. In contrast, in the case of the \(\text{H}_{21}\) transmitter (Figure \ref{fig:detection_difficult_example}) there is only a narrow range of thresholds for which both error rates are small, and the EER is greater than 0. This makes the tuning of the threshold important.
+  In case of the \(\text{E}_1\) transmitter (Figure \ref{fig:detection_easy_example}), the MDR and the FAR curves do not intersect. In fact, the MDR overlaps the left-side boundary of the figure. There is a wide range of thresholds, for which an error rate of 0 can be achieved simultaneously for both rates. This makes \(\text{E}_1\) easily distinguishable from Holt transmitters. In contrast, in the case of the \(\text{H}_{21}\) transmitter (Figure \ref{fig:detection_difficult_example}) there is only a narrow range of thresholds for which both error rates are small, and the EER is greater than 0. This makes the tuning of the threshold important.
   
   Another thing to observe is that in both Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
    
@@ -520,14 +530,7 @@
   
   For example, if we choose \(\text{H}_{10}\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 6 in Table \ref{tab:RecordingsSummery} are labeled as normal and used in the training stage and in the testing stage. Words from rows 19 are labeled as anomalies and used in the testing stage. In other words, \(\text{P}_1\) as replaced by \(\text{P}_2\).
   
-  The results are shown in Figure \ref{fig:receiver_results}. We see that all feature sets perform worse that they did in identifying rogue transmitters (see Figure \ref{fig:rogue_transmitter_results}). That is to be expected, since communication systems are designed to mitigate the effect of the receivers on the transmission signal. The surprising result is that the Generic feature set performs better in this scenario than the Raw feature set, and the Polynomial feature set performs better than both of them. The fact that different feature sets are sensitive to changes in different components of the monitored system could be used to our advantage. An IDS could incorporate different anomaly detectors based on different feature sets. When an anomaly is detected, we could then identify the source of the attack by checking which feature set triggered the alarm.
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_receiver_switch.png}
-    \caption{Comparing the feature sets for identifying a rogue receiver switch}
-    \label{fig:receiver_results}
-  \end{figure}
+  The results are shown in Figure \ref{fig:receiver_results}. We see that all feature sets perform worse than they did in identifying rogue transmitters (compare to Figure \ref{fig:rogue_transmitter_results}). That is to be expected, since communication systems are designed to mitigate the effect of the receivers on the transmission signal. The surprising result is that the Generic feature set performs better in this scenario than the Raw feature set, and the Polynomial feature set performs better than both of them. The fact that different feature sets are sensitive to changes in different components of the monitored system could be used to our advantage. An IDS could incorporate different anomaly detectors based on different feature sets. When an anomaly is detected, we could then identify the source of the attack by checking which feature set triggered the alarm.
   
 \subsection{Identifying an Addition of a Rogue Receiver}
   In the final series of experiments we simulate an attack, where the adversary connects an additional receiver to the bus. The training stage is the same as the training stage in the previous series of experiments, except that only \(\text{E}_1\) and \(\text{E}_2\) are used as transmitters.
@@ -536,9 +539,9 @@
   
   For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} are labeled as normal and used in the training stage and in the testing stage. Words from rows 2-5 are labeled as anomalies and used in the testing stage.
   
-  The results are shown in Figure \ref{fig:load_results}. Note that there are only two data points for each feature set (one for \(\text{E}_1\) and one for \(\text{E}_1\)). The numbers over the box plot represent the mean instead of the median.
+  The results are shown in Figure \ref{fig:load_results}. Note that there are only two data points for each feature set (one for \(\text{E}_1\) and one for \(\text{E}_2\)). The numbers over the box plot represent the mean instead of the median.
   
-  In this feature set all feature sets perform poorly. By comparing Figures \ref{fig:load_results} and \ref{fig:receiver_results} we learn that adding a receiver affects the electrical characteristics significantly less than replacing a receiver. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) means also altering a long segment of the transmission line, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way: The electrical characteristics are not especially sensitive to the receiver, but rather to the transmission line as a whole.
+  In this series of experiments all feature sets perform poorly. By comparing Figures \ref{fig:load_results} and \ref{fig:receiver_results} we learn that adding a receiver affects the electrical characteristics significantly less than replacing a receiver. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) also means altering a long segment of the transmission line, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way: The electrical characteristics are not especially sensitive to the receiver, but rather to the transmission line as a whole.
   
   \begin{figure}[t]
     \centering
@@ -547,19 +550,19 @@
     \label{fig:load_results}
   \end{figure}
 
-\section{Conclusions}
+\section{Conclusions} \label{Conclusions}
   We presented our hardware fingerprinting method for the ARINC 429 bus. The method could be used to retrofit source authentication into existing avionic systems with minimal effort.
   
-  We showed that our method is especially effective for identifying a technician attack, in which an adversary replaces the guarded transmitter LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping feature extraction and using the raw signal achieves the best result.
+  We showed that our method is especially effective for identifying a technician attack, in which an adversary replaces the guarded transmitter LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
   
-  We showed that the method can detect changes in the transmission line. We found that the Polynomial feature set, which was conceived for the purpose of this paper, achieves the best performance on average from all the feature sets we examined. The error rates are still relatively high. More research is required on this attack scenario.
+  We showed that the method can also detect changes in the transmission line. We found that the Polynomial feature set, which was conceived for the purpose of this paper, achieves the best performance on average from all the feature sets we examined. The error rates are still relatively high in this scenario and more research is required.
   
-  We saw that the addition of a receiver LRU does not alter the signal to a degree which is detectable by using our method.
+  We saw that the addition of a receiver LRU does not alter the signal to a degree which is effectively detectable by using our method.
   
-  Further work needs to be done in order to evaluate the sensitivity of the hardware fingerprints to external changes such as changes in temperature, supply voltages etc., and its stability over time.
+  Further work needs to be done in order to evaluate the sensitivity of the hardware fingerprints to external changes such as fluctuations in temperature or supply voltage levels, and to evaluate its stability over time.
   
-  ARINC 429 lacks basic security features. It is a security liability that is present today in almost every civil aircraft.
-  Our method could help close of the gap between ARINC 429 and modern security requirements. It is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
+  ARINC 429 lacks essential security features. It is a safety liability that is present today in almost every civil aircraft.
+  Our method could help close of the gap between ARINC 429 and modern security requirements. Thus we argue that it is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
   
 \bibliographystyle{IEEEtranS}
 \bibliography{biblio} 
