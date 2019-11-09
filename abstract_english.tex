@@ -1,0 +1,12 @@
+\begin{abstract}
+  ARINC 429 is the most common data bus in use today in civil avionics. Despite its widespread use, it is not up to par with modern security requirements, as it did not undergo any major revisions since the 1980s. Specifically, the protocol lacks any form of source authentication. An adversary with physical access to the bus is freely able to spread malicious content, as the receivers have no method of verifying the authenticity of messages.
+  
+  Updating the protocol would close off security loopholes in new aircrafts but would require thousands of airplanes to be modified. The cost of such an operation make this an unappealing solution. Other options have to be explored.
+  
+  We propose an intrusion detection system that utilizes a hardware fingerprinting approach for sender identification, that we designed specifically for the ARINC 429 data bus. Our approach relies on the observation that changes in hardware, such as replacing the transmitting device by a rogue one, modify the electric signal of the transmission. By exploiting this observation, we are able to detect technician attacks. Our proposed method only requires the attachment of a standard-compliant monitoring unit to the bus. It does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
+  
+  Because we rely on the analog properties, and not on the digital content of the transmissions, we are able to detect the switch as soon as it occurs, even if the data that is being transmitted is completely normal. Thus, we are able to preempt the attack before any damage is caused.
+  
+  In this \iftoggle{paper} {paper} {work} we evaluate the performance of our intrusion detection system against different adversary models. For this purpose, we collected a data corpus of ARINC 429 data traces, which may be of independent interest since, to the best of our knowledge, no public corpus is available.
+  We find that our intrusion detection system is especially suitable to protecting against rogue transmitters.
+\end{abstract}

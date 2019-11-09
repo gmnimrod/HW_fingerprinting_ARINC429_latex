@@ -1,23 +1,31 @@
-\documentclass[conference]{IEEEtran}
+\newif\ifpaper
+%\papertrue
+
+\ifpaper
+\documentclass[compsoc,conference,a4paper]{IEEEtran}
+\else
+% 12 pts font
+% two sided document. We later set the margins' size
+% to be different on the side of the binding.
+\documentclass[12pt,twoside]{book}
+\fi
+
 % Add the compsoc option for Computer Society conferences.
 %
 % If IEEEtran.cls has not been installed into the LaTeX system files,
 % manually specify the path to it like:
 % \documentclass[conference]{../sty/IEEEtran}
 
-\pagestyle{plain}
-
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algpseudocode} % changed from &&&& 
-\usepackage{algorithm} % changed from &&&& 
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{url} % to enable usage of long URLs ion the bib (otherwise they escape the line)
+\usepackage{url}  % to enable usage of long URLs ion the bib (otherwise they escape the line)
 \usepackage{csvsimple}
 \usepackage{tabularx}
 \usepackage{xfrac}
+\usepackage{etoolbox}  % newtoggle
 
 \usepackage{hyperref}
 \hypersetup{
@@ -26,32 +34,113 @@
     urlcolor=blue,
 }
 
+\newtoggle{paper}
+\ifpaper
+\toggletrue{paper}
+\else
+\togglefalse{paper}
+\fi
+
+\iftoggle{paper}{
+  % if paper
+  \pagestyle{plain}
+} {
+  % if thesis report
+  % times font
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8x]{inputenc}
+  \usepackage{mathptmx}  % this sets the font
+  
+  % paper size and margins size
+  \usepackage[a4paper, inner=3cm, outer=2cm, top=2cm, bottom=2cm]{geometry}
+  
+  % for hebrew abstract
+  \usepackage[main=english,hebrew]{babel}
+  
+  % we'll use it to place hebrew abstract on an even page, so that it faces the correct way
+  \usepackage{ifoddpage}
+  
+  % header and footer
+  % Print chapter in header on outer side (far from binding).
+  % Print page number in footer on outer side (far from binding).
+  \usepackage{fancyhdr}
+  \pagestyle{fancy}
+  \renewcommand{\chaptermark}[1]{%
+    \markboth{\MakeUppercase{%
+    \chaptername}\ \thechapter.%
+    \ #1}{}}
+  % \renewcommand{\sectionmark}[1]{}
+  \fancyhead[LE,RO]{\textbf{\textsl{\thepage}}}  % rightmark uses sectionmark
+  \fancyhead[LO,RE]{\textsl{\leftmark}}  % leftmark uses chaptermark
+  \fancyfoot{}
+}
+
+% different hierarchy commands for different formats
+\iftoggle{paper}{
+  \newcommand{\level}[1]{\section{#1}}
+  \newcommand{\sublevel}[1]{\subsection{#1}}
+  \newcommand{\subsublevel}[1]{\subsubsection{#1}}
+} {
+  \newcommand{\level}[1]{\chapter{#1}}
+  \newcommand{\sublevel}[1]{\section{#1}}
+  \newcommand{\subsublevel}[1]{\subsection{#1}}
+}
+
+\makeatletter
+% allows chapters to start on even pages
+\newcommand{\enableopenany}{%
+  \@openrightfalse%
+}
+
+% allows chapters to start on odd pages
+\newcommand{\disableopenany}{%
+  \@openrighttrue%
+}
+\makeatother
+
+% Define commands that helps us control the blank pages between chapters.
+% Used in order to make sure that Hebrew chapters (i.e. the abstract)
+% are facing the right way when the book is opened right to left.
+\iftoggle{paper}{
+}{
+  % starts an unnumbered chapter on an even page
+  \newcommand{\newchapterevenpage}{%
+    \enableopenany
+    \chapter*{}
+    \checkoddpage
+    \ifoddpage
+      \newpage
+    \else
+      % nothing
+    \fi
+    \disableopenany
+  }
+}
+
 \title{Hardware Transmitter Fingerprinting in the ARINC 429 Avionic Bus}
 %\author{Avishai Wool, Nimrod Gilboa Markevich}
 \author{Anonymous}
 
 \begin{document}
 
-\maketitle
+\iftoggle{paper}{
+  \maketitle
+  \input{abstract_english.tex}
+}{
+  \frontmatter  % use roman numerals for page numbers
+  \input{title_page_hebrew_outer.tex}
+  \input{title_page_hebrew_inner.tex}
+  \input{title_page_english_outer.tex}
+  \input{title_page_english_inner.tex}
+  \input{abstract_english.tex}
+  \tableofcontents
+  \listoffigures
+  \listoftables
+  \mainmatter  % use arabic numerals for page numbers
+}
 
-\begin{abstract}
-  ARINC 429 is the most common data bus in use today in civil avionics. Despite its widespread use, it is not up to par with modern security requirements, as it did not undergo any major revisions since the 1980s. Specifically, the protocol lacks any form of source authentication. An adversary with physical access to the bus is freely able to spread malicious content, as the receivers have no method of verifying the authenticity of messages.
-  
-  Updating the protocol would close off security loopholes in new aircrafts, but would require thousands of airplanes to be modified. The cost of such an operation make this an unappealing solution. Other options have to be explored.
-  
-  We propose an intrusion detection system that utilizes a hardware fingerprinting approach for sender identification, that we designed specifically for the ARINC 429 data bus. Our approach relies on the observation that changes in hardware, such as replacing the transmitting device by a rogue one, modify the electric signal of the transmission. By exploiting this observation, we are able to detect technician attacks. Our proposed method only requires the attachment of a standard-compliant monitoring unit to the bus. It does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
-  
-  Because we rely on the analog properties, and not on the digital content of the transmissions, we are able to detect the switch as soon as it occurs, even if the data that is being transmitted is completely normal. Thus, we are able to preempt the attack before any damage is caused.
-  
-  In this paper we evaluate the performance of our intrusion detection system against different adversary models. For this purpose we collected a data corpus of ARINC 429 data traces, which may be of independent interest since, to the best of our knowledge, no public corpus is available.
-  We find that our intrusion detection system is especially suitable to protecting against rogue transmitters.
-  
-\end{abstract}
-
-
-\section{Introduction}
-\subsection{Background}
-  
+\level{Introduction}
+\sublevel{Background}
   ARINC 429 \cite{arinc2004arinc429} is a prominent standard for wired intra-vehicle communication in civil aviation. Most active and retired airplanes contain ARINC buses \cite{fuchs2012evolution}, interconnecting the many digital systems that are necessary for the operation of an aircraft: sensors, radars, engines, cockpit controls and more.
   
   Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. Security on the other hand, as we understand it today, was not a primary concern. At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as widespread as it is today. ARINC 429 was designed without any security features, such as encryption or source authentication, that are perceived today as essential to secure communication. In the years that passed the importance of proper cybersecurity was demonstrated in numerous fields, from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote}. However, since 1980 there were no major revisions of the ARINC 429 standard \cite{18937420070101}.
@@ -64,9 +153,9 @@
   
   Intrusion detection systems (IDS) are often employed to retrofit security into similar systems that were designed without security in mind, such as CAN bus in automobile systems \cite{muter2011entropy}. An IDS is a software or device that continuously compares the observed behavior of the system to the expected behavior and raises an alarm whenever anomalies are detected. However, intrusion detection systems that analyze only the message content are limited in their ability to identify the sender of a message.  An attacker that is aware of the presence of the IDS might attempt to fool it by sending data that is identical or very similar to normal data.  Therefore, in order to identify the message source, we need to analyze the electrical signal. The guiding principle is that every transmitter is unique, even those of the same model and maker, due to minor defects in production, component tolerances etc., which manifest in the electrical signal. Hence, every signal has inimitable characteristics that can be used to identify the sender. To a lesser extent, the signal is also affected by the receivers and the bus topology. The characteristics can be used to identify changes to passive components on the bus. The process of learning to associate a signal to a transmitter is called hardware fingerprinting.
   
-  It is important to note that hardware fingerprinting cannot replace the use of content-based IDSs, as hardware fingerprinting only detects attacks, where one transmitter sends messages, that are normally sent by another transmitter. On the other hand, an IDS that inspects only the data is at risk of being fooled by a clever adversary that mimics normal behavior. Using both methods in tandem supplies protection against the widest range of attacks. Exploring content-based detection is beyond the scope of this paper.
+  It is important to note that hardware fingerprinting cannot replace the use of content-based IDSs, as hardware fingerprinting only detects attacks, where one transmitter sends messages, that are normally sent by another transmitter. On the other hand, an IDS that inspects only the data is at risk of being fooled by a clever adversary that mimics normal behavior. Using both methods in tandem supplies protection against the widest range of attacks. Exploring content-based detection is beyond the scope of this \iftoggle{paper} {paper} {work}.
   
-% \subsection{Motivation}
+% \sublevel{Motivation}
 %   \color{gray}
 %   Advantage 1: ...Of course, the attacker is aware of the possibility of a cyber defence systems monitoring the communication on the bus. As a countermeasure, they will attempt to mask the offensive data as data naturally occurring in the system. This type of operation is meant to make it hard for defence systems to detect intruders solely based on the digital data. Advantage 2: (Is it true to say, that other algorithms require a sequence of words, while ours can make a decision based on a single word? Maybe other systems can do that too, or maybe our system should use more than one word for robustness?)
 %   No need to change the protocol or the systems. Does not increase computational demands or communication overhead.
@@ -74,7 +163,7 @@
 %   \color{black}
 %   \textcolor{gray}{(Should we address lack of authentication here (in addition to mentioning it in the motivation section)?)}
 
-\subsection{Related Work} \label{RelatedWork}
+\sublevel{Related Work} \label{RelatedWork}
   To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; wireless radio \cite{ellis2001characteristics, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{dey2014accelprint, das2016tracking}.
   
   One domain in particular is of special interest to us: controller area network (CAN bus) \cite{bosch1991canbus}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN. Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
@@ -97,7 +186,7 @@
   
   CAN bus and ARINC 429 use different line protocols, therefore methods presented in the above papers cannot be directly applied to our problem without change. A key difference between the two protocols is the bus topology. In CAN bus dozens of transceivers may share one bus. The main threat CAN papers are dealing with is device hijacking, where one ECU is remotely hacked, and starts to transmit the messages of another ECU on the same bus. Since during normal operation of a car, devices do not spontaneously join or leave the network, all the devices are known to the defender in advance. This scenario naturally fits into a multiclass classification setting, where a message needs to be identified as belonging to one of many known classes. In ARINC 429 on the other hand, only one transmitter LRU is allowed on a line. Only that single transmitter LRU is known to the defender beforehand. The task is to categorize a message as either normal or as an anomaly (an attack). Multiclass classification algorithms are not suitable for this task, because only samples from the normal class can be obtained for training. Instead we need to use novelty detection algorithms \cite{pimentel2014review}. Of the CAN bus papers we reviewed, only \cite{choi2018identifying} and \cite{choi2018voltageids} extend their algorithms to handle detection of unknown transmitters.
   
-\subsection{Contributions}
+\sublevel{Contributions}
   We propose the use of hardware fingerprinting in order to imbue ARINC 429 buses with source authentication capabilities. Applying the method only requires the attachment of a standard-compliant monitoring unit to the bus. This method does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
   
   We describe the adversary models that our method is effective at protecting against. We then design an intrusion detection system with hardware fingerprinting capabilities, and evaluate its performance in these attack scenarios.
@@ -108,16 +197,16 @@
   
   We compare different feature sets under different the adversarial models. Somewhat surprisingly, we find that using the raw samples, without extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
   
-  Organization of this paper: In Section \ref{Preliminaries} we describe the ARINC protocol and the adversary model. In Section \ref{Approach} we outline our approach. Section \ref{SignalSegmentation} describes our signal segmentation process. Section \ref{FeatureSets} covers the various feature sets we considered. Section \ref{PerformanceEvaluation} describes an extensive performance evaluation, and we conclude with Section \ref{Conclusions}.
+  Organization of this \iftoggle{paper} {paper} {work}: In Section \ref{Preliminaries} we describe the ARINC protocol and the adversary model. In Section \ref{Approach} we outline our approach. Section \ref{SignalSegmentation} describes our signal segmentation process. Section \ref{FeatureSets} covers the various feature sets we considered. Section \ref{PerformanceEvaluation} describes an extensive performance evaluation, and we conclude with Section \ref{Conclusions}.
   
-\section{Preliminaries} \label{Preliminaries}
+\level{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
-\subsection{The ARINC 429 Standard}
+\sublevel{The ARINC 429 Standard}
   ARINC Specification 429 \cite{arinc2004arinc429}, also named ``Mark 33 Digital Transfer System (DITS)'', is a standard of the avionics industry. It defines a protocol for the communication between avionics system elements over a local area network. First published in 1977 by Aeronautical Radio, Inc., it has since become one of the most widely used data bus protocols in civil aircrafts \cite{MoirIan2013DBN}. The protocol encompasses different layers: from the physical requirements, through the electronic characteristics of the signal, data format and ending with a file transfer technique.
 
-  We continue with a short description of those parts of the specifications, which are relevant to this paper. In ARINC 429 the communicating entities are called line-replaceable units (LRU). Data is transmitted over a single twisted and shielded pair of wires. The cable shield is grounded on both ends. The lines are denoted Line A and Line B. Differential signaling is used, meaning that the signal is the voltage difference from Line A to Line B, rather than the difference from one wire to ground. Bipolar return-to-zero (BRTZ) modulation is used as a line protocol. BRTZ is a tri-level state modulation: we refer to the three voltage levels as ``HI'', ``LO'' and ``NULL''. A binary 1 is encoded as a positive voltage pulse ``HI'', and a binary 0 is encoded as a negative voltage pulse ``LO''. In between transmissions, the voltage drops to 0V, ``NULL''. Every ``HI'' and every ``LO'' are preceded and are followed by a ``NULL'', even if repeating bit values are transmitted consecutively. The differential output voltage from line A to line B is $10V \pm 1$ in ``HI'' mode, $0 \pm 0.5$ in ``NULL'' mode and $-10V \pm 1$ in ``LO'' mode.  Figure \ref{fig:word_example} shows a recording of a transmission on an ARINC 429 data bus.
+  We continue with a short description of those parts of the specifications, which are relevant to this \iftoggle{paper} {paper} {work}. In ARINC 429 the communicating entities are called line-replaceable units (LRU). Data is transmitted over a single twisted and shielded pair of wires. The cable shield is grounded on both ends. The lines are denoted Line A and Line B. Differential signaling is used, meaning that the signal is the voltage difference from Line A to Line B, rather than the difference from one wire to ground. Bipolar return-to-zero (BRTZ) modulation is used as a line protocol. BRTZ is a tri-level state modulation: we refer to the three voltage levels as ``HI'', ``LO'' and ``NULL''. A binary 1 is encoded as a positive voltage pulse ``HI'', and a binary 0 is encoded as a negative voltage pulse ``LO''. In between transmissions, the voltage drops to 0V, ``NULL''. Every ``HI'' and every ``LO'' are preceded and are followed by a ``NULL'', even if repeating bit values are transmitted consecutively. The differential output voltage from line A to line B is $10V \pm 1$ in ``HI'' mode, $0 \pm 0.5$ in ``NULL'' mode and $-10V \pm 1$ in ``LO'' mode.  Figure \ref{fig:word_example} shows a recording of a transmission on an ARINC 429 data bus.
   
-  Data is transmitted in words that are 32-bit long. The bits are transmitted in the following order, from first to last: 8, 7, ..., 2, 1, 9, 10, ..., 32. This order is a legacy from older systems. In this paper, words are interpreted as though an MSB-first transmission order is in place.
+  Data is transmitted in words that are 32-bit long. The bits are transmitted in the following order, from first to last: 8, 7, ..., 2, 1, 9, 10, ..., 32. This order is a legacy from older systems. In this \iftoggle{paper} {paper} {work}, words are interpreted as though an MSB-first transmission order is in place.
   
   Data is transmitted unidirectionally from a single transmitter LRU to up to 20 receiver LRUs. Only one transmitter LRU is allowed on the bus - a separate bus is required for each transmitter. Since there is only one transmitter on each bus, there is no sender ID field in ARINC messages.
    
@@ -132,7 +221,7 @@
     \label{fig:word_example}
   \end{figure}
   
-\subsection{The Adversary Model}
+\sublevel{The Adversary Model}
   Our method is designed to guard against ``technician attacks''. This type of attack involves an adversary that has brief physical access to the system. Such an adversary is able to replace LRUs or add new ones to the bus.
   
   The adversary may have prior knowledge of the hardware and topology of the attacked system. The reverse is not true: As defenders, we have no prior knowledge of what the adversary's hardware might be. However, we do assume that the adversary will use commercial off-the-shelf hardware.
@@ -141,25 +230,25 @@
   
   We distinguish between several types of attacks.
 
-\subsubsection{A Rogue Transmitter}
+\subsublevel{A Rogue Transmitter}
   In this type of attack an adversary replaces a legitimate transmitter LRU by a rogue one. During an initial dormant phase of the attack, the new device imitates the behavior of the original transmitter, transmitting data exactly as requested, in order to remain hidden. Only at a later time, the attack moves on to its active phase. During this phase the rogue transmitter LRU sends out messages which are meant to disrupt the work of the system, and in extreme cases causes irreversible damage to the electronic or physical components.
   
   % DELETE THIS PARAGRAPH?
   % An attacker may or may not posses knowledge of the bus topology - i.e., number of receivers, distances, and models of connected devices. The attacker will try their best to mimic the characteristics of the original transmitter. In the most case for the defenders, the attacker will use a transmitter which is identical (same manufacturer and model) to the compromised transmitter. (True statement? It is theoretically possible to use a massive signal generator, or maybe a dedicated device that can adjust itself to the real transmitter).
 
-\subsubsection{A Rogue Receiver}
+\subsublevel{A Rogue Receiver}
   In this attack type of attack the adversary replaces a legitimate receiver LRU by or rogue one, or adds a rogue receiver LRU without detaching another LRU. By doing this the adversary gains access to the transmitted data, which might be otherwise inaccessible, and may use this data to cause harm through another attack channel.
 
-\subsubsection{An Additional Transmitter}
+\subsublevel{An Additional Transmitter}
   This type of attack is actually not possible to perform on the ARINC bus, wherein the adversary is adding another transmitter LRU without detaching the legitimate transmitter. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus violates the protocol, therefore an adversary cannot simply add a transmitter to the bus. Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by software only, since its wiring does not permit it. Thus, the adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitting during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
 
-\section{The Hardware Fingerprinting Approach} \label{Approach}
+\level{The Hardware Fingerprinting Approach} \label{Approach}
   The IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
   
-\subsection{Advantage Over Content Based IDSs}
+\sublevel{Advantage Over Content Based IDSs}
   An intrusion detection system which draws its information exclusively from the digital content of the transmitted messages will be unable to detect the rogue transmitter LRU during the latter's dormant phases, or to detect a rogue receiver LRU. Only during an active phase of the attack of a rogue transmitter LRU is the transmitted data distinguishable from that of a legitimate transmission. By utilizing information from the analog domain, we are able to detect hardware changes independently from the transmitted data.  Usually, before takeoff, the aircraft systems are checked for basic integrity. During this pre-flight operations the changes to the bus can be detected, even if the transmitter LRU is sending normal data.
   
-\subsection{IDS Overview} \label{Overview}
+\sublevel{IDS Overview} \label{Overview}
   Our method operates on a word by word basis. When a new word is captured and tested for anomalies, we process it in several stages. This section provides an overview of these steps. In the subsequent sections each stage is explained in greater detail.
   
   As our method operates on a word by word basis, it is unable to raise the alarm until after the first anomalous word is already received. We find this is a reasonable limitation, since the amount damage an adversary can cause with a single word is limited. 
@@ -177,12 +266,12 @@
           A word is declared as an anomaly, if the number of ``anomaly'' segments exceeds a predetermined threshold.
   \end{enumerate}
   
-\subsection{Novelty Detection per Segment}
+\sublevel{Novelty Detection per Segment}
   Our method uses per segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in Section \ref{SignalSegmentation}. A segment's characteristics depend on its type. Therfore we opted to train a different novelty detector for each type of segment.
   
   There are many outlier and novelty detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
   
-  For the novelty detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} Python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this paper.
+  For the novelty detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} Python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this \iftoggle{paper} {paper} {work}.
   
   LOF is a density based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (feature vector), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average distance of the point from its neighbors.
   
@@ -190,7 +279,7 @@
   
   We constructed a separate novelty detector for each type of segment. Each segment is fed individually into its appropriate LOF novelty detector. The LOF outputs its determination regarding the source of the segment, either `normal' or `anomaly'.
   
-\subsection{Voting}
+\sublevel{Voting}
   We gather all the determinations made by the different LOF detectors for all segments of the same word. The number of segments that have been identified as normal is subjected to a threshold. If it is greater than that threshold, the word is predicted to be `normal', otherwise, it is flagged as an `anomaly'.
   
 %%%%inline formula $\sum_{i=0}^n x_i $
@@ -203,7 +292,7 @@
 %%%method 2: half-bits; how
 
 %%%%%%%%%%%%%%%%%
-\section{Signal Segmentation} \label{SignalSegmentation}
+\level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
   In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels}.
@@ -259,14 +348,21 @@
     \label{fig:SegmentationTrace}
   \end{figure}
   
-\section{Feature Sets} \label{FeatureSets}
+\level{Feature Sets} \label{FeatureSets}
   In our work we compare the performance of the feature sets described below.
   
-\subsubsection{Raw Time-Domain Samples}
-
-  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
+\iftoggle{paper}{
+\subsublevel{Raw Time-Domain Samples}
+}{
+\sublevel{Raw Time-Domain Samples}
+}
+  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
   
-\subsubsection{Generic Time-Domain Feature Set}
+\iftoggle{paper}{
+\subsublevel{Generic Time-Domain Feature Set}
+}{
+\sublevel{Generic Time-Domain Feature Set}
+}
   As discussed in Section \ref{RelatedWork}, in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids, kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
   
   These features are of a generic nature, in the sense that the shape of the signal does not affect the extraction process. Due to this property, it is possible to apply the same features in different fields of research.
@@ -300,15 +396,22 @@
     \end{tabular}
   \end{table}
   
-  In addition to time-domain features, the cited papers also employ frequency-domain features. We do not use frequency-domain features in this paper. We argue that the non-periodic nature of the signals, that are the result of our segmentation method, does not benefit from frequency analysis.
+  In addition to time-domain features, the cited papers also employ frequency-domain features. We do not use frequency-domain features in this \iftoggle{paper} {paper} {work}. We argue that the non-periodic nature of the signals, that are the result of our segmentation method, does not benefit from frequency analysis.
 
-\subsubsection{Polynomial Feature Set}
+\iftoggle{paper}{
+\subsublevel{Polynomial Feature Set}
+}{
+\sublevel{Polynomial Feature Set}
+}
   The features in this set are calculated by performing a least squares polynomial fit and taking each coefficient as a separate feature, plus the residual as an additional feature.
   
   In order to avoid overfitting we fit each type of segment with a polynomial function of an appropriate degree. For the four transitions (``Up from LO'', ``Up from NULL'', ``Down from HI'', ``Down from NULL'') we use a degree of 2. For ``NULL, HI to HI'' and ``NULL, LO to LO'' we use a degree of 6, on account of these segments being even functions. For the remaining segments we use a degree of 7 for similar reasons. Note that the number of features is always one more than the degree due to the residual.
   
-\subsubsection{Hand-Crafted Feature Set}
-
+\iftoggle{paper}{
+\subsublevel{Hand-Crafted Feature Set}
+}{
+\sublevel{Hand-Crafted Feature Set}
+}
   In this feature set there are different features for each segment type.
   
   We observed that the ``HI'' segments contain an overshoot followed by ripples. We denote by \((t_1, v_1), (t_2, v_2), (t_3, v_3)\) the time and voltage level at the first local maxima (the overshoot), then the first local minima that follows and then the first local maxima that follows. Time is measured from the beginning of the segment. The features we take are the above 6 values, in addition to the differences in time and voltage of the second and third points from the first point: \(t_2-t_1, v_2-v_1, t_3-t_1, v_3-v_1\). The features in the ``LO'' segments are a mirror image of the features in the ``HI'' segment.
@@ -354,9 +457,9 @@
   
  
 %%%%%%%%%%%%%%%%%%
-\section{Performance Evaluation} \label{PerformanceEvaluation}
+\level{Performance Evaluation} \label{PerformanceEvaluation}
 
-\subsection{The Data Set} \label{TheDataSet}
+\sublevel{The Data Set} \label{TheDataSet}
   To the best of our knowledge, there is no publicly available data set that contains high rate voltage samples of ARINC 429 protocol. We gathered our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.
   
   We sampled two types of transmitters:
@@ -452,7 +555,7 @@
     \end{tabular}
   \end{table}
   
-\subsection{Methodology}
+\sublevel{Methodology}
   In order to evaluate the performance of our algorithm, we performed an extensive series of experiments. In each experiment we select one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we select a group of other devices as rogue devices, and their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary.
   
   Our numerical analysis of the results starts with calculating the false alarm and misdetection rates (FAR \& MDR respectively) as functions of the voting threshold. We then find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
@@ -465,7 +568,7 @@
   
   In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. The measurements labeled as anomalies are not present in the training set.
   
-\subsection{Identifying a Rogue Transmitter}
+\sublevel{Identifying a Rogue Transmitter}
   In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the our transmitters as the legitimate device to be guarded. In addition we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
   
   We then test the trained IDS. We simulate a rogue transmitter LRU by using measurements of other transmitters connected to the chosen receiver as anomalies. We remind the reader that during each measurement, only one transmitter is connected to the bus.
@@ -523,7 +626,7 @@
   
   Another thing to observe is that in both Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
    
-\subsection{Identifying a Rogue Receiver Switch}
+\sublevel{Identifying a Rogue Receiver Switch}
   In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments: One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a a receiver.
   
   In the testing stage, we simulate an attack by using measurements taken with the same transmitter as in the training stage, but with the other receiver LRU.
@@ -532,7 +635,7 @@
   
   The results are shown in Figure \ref{fig:receiver_results}. We see that all feature sets perform worse than they did in identifying rogue transmitters (compare to Figure \ref{fig:rogue_transmitter_results}). That is to be expected, since communication systems are designed to mitigate the effect of the receivers on the transmission signal. The surprising result is that the Generic feature set performs better in this scenario than the Raw feature set, and the Polynomial feature set performs better than both of them. The fact that different feature sets are sensitive to changes in different components of the monitored system could be used to our advantage. An IDS could incorporate different anomaly detectors based on different feature sets. When an anomaly is detected, we could then identify the source of the attack by checking which feature set triggered the alarm.
   
-\subsection{Identifying an Addition of a Rogue Receiver}
+\sublevel{Identifying an Addition of a Rogue Receiver}
   In the final series of experiments we simulate an attack, where the adversary connects an additional receiver to the bus. The training stage is the same as the training stage in the previous series of experiments, except that only \(\text{E}_1\) and \(\text{E}_2\) are used as transmitters.
   
   In the testing stage, we use measurements taken where a Holt receiver was connected to the bus in addition to the transmitter and receiver from the training stage.
@@ -550,12 +653,12 @@
     \label{fig:load_results}
   \end{figure}
 
-\section{Conclusions} \label{Conclusions}
+\level{Conclusions} \label{Conclusions}
   We presented our hardware fingerprinting method for the ARINC 429 bus. The method could be used to retrofit source authentication into existing avionic systems with minimal effort.
   
   We showed that our method is especially effective for identifying a technician attack, in which an adversary replaces the guarded transmitter LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
   
-  We showed that the method can also detect changes in the transmission line. We found that the Polynomial feature set, which was conceived for the purpose of this paper, achieves the best performance on average from all the feature sets we examined, when applied to this task. The error rates are still relatively high in this scenario and more research is required.
+  We showed that the method can also detect changes in the transmission line. We found that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance on average from all the feature sets we examined, when applied to this task. The error rates are still relatively high in this scenario and more research is required.
   
   We saw that the addition of a receiver LRU does not alter the signal to a degree which is effectively detectable by using our method.
   
@@ -567,6 +670,12 @@
 \bibliographystyle{IEEEtranS}
 \bibliography{biblio} 
 
-% \tableofcontents
+% if thesis report then English abstract is after bibliography
+\iftoggle{paper}{
+  % nothing
+}{
+  \newchapterevenpage
+  \input{abstract_hebrew.tex}
+}
 
 \end{document}
