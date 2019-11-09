@@ -39,7 +39,7 @@
   
   Updating the protocol would close off security loopholes in new aircrafts, but would require thousands of airplanes to be modified. The cost of such an operation make this an unappealing solution. Other options have to be explored.
   
-  We propose an intrusion detection system that utilizes a hardware fingerprinting approach for sender identification, that we designed specifically for the ARINC 429 data bus. Our approach relies on the observation that changes in hardware, such as replacing the transmitting device by a rogue one, modify the the electric signal of the transmission. By exploiting this observation, we are able to detect technician attacks. Our proposed method only requires the attachment of a standard-compliant monitoring unit to the bus. It does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
+  We propose an intrusion detection system that utilizes a hardware fingerprinting approach for sender identification, that we designed specifically for the ARINC 429 data bus. Our approach relies on the observation that changes in hardware, such as replacing the transmitting device by a rogue one, modify the electric signal of the transmission. By exploiting this observation, we are able to detect technician attacks. Our proposed method only requires the attachment of a standard-compliant monitoring unit to the bus. It does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
   
   Because we rely on the analog properties, and not on the digital content of the transmissions, we are able to detect the switch as soon as it occurs, even if the data that is being transmitted is completely normal. Thus, we are able to preempt the attack before any damage is caused.
   
@@ -60,7 +60,7 @@
   
   In particular, ARINC 429 has no mechanism for source authentication, so once an adversary has gained physical access to bus, any data they transmit will be accepted.
    
-  One way to add authentication without an industry-wide update of the protocol is to implement it at a higher layer of the protocol stack. Unfortunately, in ARINC 429 there are only 19 data bits in an message. This is typically insufficient for a secure implementation of message code authentication (MAC).
+  One way to add authentication without an industry-wide update of the protocol is to implement it at a higher layer of the protocol stack. Unfortunately, in ARINC 429 there are only 19 data bits in a message. This is typically insufficient for a secure implementation of message code authentication (MAC).
   
   Intrusion detection systems (IDS) are often employed to retrofit security into similar systems that were designed without security in mind, such as CAN bus in automobile systems \cite{muter2011entropy}. An IDS is a software or device that continuously compares the observed behavior of the system to the expected behavior and raises an alarm whenever anomalies are detected. However, intrusion detection systems that analyze only the message content are limited in their ability to identify the sender of a message.  An attacker that is aware of the presence of the IDS might attempt to fool it by sending data that is identical or very similar to normal data.  Therefore, in order to identify the message source, we need to analyze the electrical signal. The guiding principle is that every transmitter is unique, even those of the same model and maker, due to minor defects in production, component tolerances etc., which manifest in the electrical signal. Hence, every signal has inimitable characteristics that can be used to identify the sender. To a lesser extent, the signal is also affected by the receivers and the bus topology. The characteristics can be used to identify changes to passive components on the bus. The process of learning to associate a signal to a transmitter is called hardware fingerprinting.
   
@@ -264,7 +264,7 @@
   
 \subsubsection{Raw Time-Domain Samples}
 
-  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
+  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
   
 \subsubsection{Generic Time-Domain Feature Set}
   As discussed in Section \ref{RelatedWork}, in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids, kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
@@ -555,7 +555,7 @@
   
   We showed that our method is especially effective for identifying a technician attack, in which an adversary replaces the guarded transmitter LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
   
-  We showed that the method can also detect changes in the transmission line. We found that the Polynomial feature set, which was conceived for the purpose of this paper, achieves the best performance on average from all the feature sets we examined. The error rates are still relatively high in this scenario and more research is required.
+  We showed that the method can also detect changes in the transmission line. We found that the Polynomial feature set, which was conceived for the purpose of this paper, achieves the best performance on average from all the feature sets we examined, when applied to this task. The error rates are still relatively high in this scenario and more research is required.
   
   We saw that the addition of a receiver LRU does not alter the signal to a degree which is effectively detectable by using our method.
   
