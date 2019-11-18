@@ -191,13 +191,13 @@
   
   We describe the adversary models that our method is effective at protecting against. We then design an intrusion detection system with hardware fingerprinting capabilities, and evaluate its performance in these attack scenarios.
   
-  We explore the ability to distinguish between devices from different vendors and between devices of the same model. We find that it is possible to perfectly distinguish between devices from different vendors by their electric signal, with close to zero false alarms. We also find that our method can distinguish between devices from the same vendor and model, which are supposedly identical, with low false alarm rates. We see that within this group, some devices are more unique that others.
+  We explore the ability to distinguish between devices from different vendors and between devices of the same model. We find that it is possible to perfectly distinguish between devices from different vendors by their electric signal, with close to zero false alarms. We also find that our method can also distinguish between devices from the same vendor and model, which are supposedly identical, with low false alarm rates. We see that within this group, some devices are more unique that others.
   
   We explore the effect of receivers and transmission lines on performance. We see that adding a receiver does not yield a significant change in the signal. However, switching a receiver by another receiver, when combined with a change to the transmission line, is detectable by our method.
   
   We compare different feature sets under different the adversarial models. Somewhat surprisingly, we find that using the raw samples, without extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
   
-  Organization of this \iftoggle{paper} {paper} {work}: In Section \ref{Preliminaries} we describe the ARINC protocol and the adversary model. In Section \ref{Approach} we outline our approach. Section \ref{SignalSegmentation} describes our signal segmentation process. Section \ref{FeatureSets} covers the various feature sets we considered. Section \ref{PerformanceEvaluation} describes an extensive performance evaluation, and we conclude with Section \ref{Conclusions}.
+  Organization of this \iftoggle{paper} {paper} {work}: In Section \ref{Preliminaries} we describe the ARINC protocol and the adversary model. In Section \ref{Approach} we outline our approach. Section \ref{SignalSegmentation} describes our signal segmentation process. Section \ref{FeatureSets} covers the various feature sets we considered. Sections \ref{PerformanceEvaluation} and \ref{PerformanceEvaluationCompleteMethod} describe an extensive performance evaluation. We conclude with Section \ref{Conclusions}.
   
 \level{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
@@ -208,7 +208,7 @@
   
   Data is transmitted in words that are 32-bit long. The bits are transmitted in the following order, from first to last: 8, 7, ..., 2, 1, 9, 10, ..., 32. This order is a legacy from older systems. In this \iftoggle{paper} {paper} {work}, words are interpreted as though an MSB-first transmission order is in place.
   
-  Data is transmitted unidirectionally from a single transmitter LRU to up to 20 receiver LRUs. Only one transmitter LRU is allowed on the bus - a separate bus is required for each transmitter. Since there is only one transmitter on each bus, there is no sender ID field in ARINC messages.
+  Data on the ARINC 429 bus is transmitted unidirectionally from a single transmitter LRU to up to 20 receiver LRUs. Only one transmitter LRU is allowed on the bus - a separate bus is required for each transmitter. Since there is only one transmitter on each bus, there is no sender ID field in ARINC messages.
    
   The protocol allows a choice of one of two bit rates: Slow, at 12.0 to 14.5 Kbits/sec, and fast, at 100 Kbits/sec. The bit rate on a bus is fixed and maintained within \%1. The signal is self-clocking.
   
@@ -240,10 +240,10 @@
   In this attack type of attack the adversary replaces a legitimate receiver LRU by or rogue one, or adds a rogue receiver LRU without detaching another LRU. By doing this the adversary gains access to the transmitted data, which might be otherwise inaccessible, and may use this data to cause harm through another attack channel.
 
 \subsublevel{An Additional Transmitter}
-  This type of attack is actually not possible to perform on the ARINC bus, wherein the adversary is adding another transmitter LRU without detaching the legitimate transmitter. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus violates the protocol, therefore an adversary cannot simply add a transmitter to the bus. Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by software only, since its wiring does not permit it. Thus, the adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitting during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
+  This type of attack is actually not possible to perform on the ARINC bus, wherein the adversary is adding another transmitter LRU without detaching the legitimate transmitter. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus violates the protocol, therefore an adversary cannot simply add a transmitter to the bus. Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by software only, since its wiring does not permit it. Thus, the adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitter during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
 
 \level{The Hardware Fingerprinting Approach} \label{Approach}
-  The IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
+  The fingerprinting IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
   
 \sublevel{Advantage Over Content Based IDSs}
   An intrusion detection system which draws its information exclusively from the digital content of the transmitted messages will be unable to detect the rogue transmitter LRU during the latter's dormant phases, or to detect a rogue receiver LRU. Only during an active phase of the attack of a rogue transmitter LRU is the transmitted data distinguishable from that of a legitimate transmission. By utilizing information from the analog domain, we are able to detect hardware changes independently from the transmitted data.  Usually, before takeoff, the aircraft systems are checked for basic integrity. During this pre-flight operations the changes to the bus can be detected, even if the transmitter LRU is sending normal data.
@@ -251,19 +251,17 @@
 \sublevel{IDS Overview} \label{Overview}
   We will next describe our proposed method of anomaly detection. We divide the algorithm into several stages. This section provides an overview of these steps. In the subsequent sections selected stages are explained in greater detail as needed.
   
-  It is appropriate to note that since our method operates on $N$ words at a time, in case of an attack it is able to raise the alarm only after sufficiently many of those transmitted words are identified as anomalous. As we will later see, there is an inherent trade-off between the method's response time, and the false alarm / misdetection ratios. We explore this trade-off in Section \ref{PerformanceEvaluation}.
-  
   \begin{enumerate}
     \item \textbf{[Acquisition]}
           We sample both lines of the bus at a sampling rate that is 50 times higher than the bit rate. We used a sample rate of 5 MSa/s. The differential signal is obtained by subtracting the samples of line B from the samples of line A.
     \item \textbf{[Segmentation]}
-          Each word is split into 127 segments of 10 different types, based on voltage levels. The purpose of the segmentation is to eliminate the effect of the transmitted data, the content of the word, on the final decision of the anomaly detector. See Section \ref{SignalSegmentation} for details.
+          Each word is split into 127 segments of 10 different types, based on voltage levels. The purpose of the segmentation is to eliminate the effect of the transmitted data, i.e., the content of the word, on the final decision of the anomaly detector. See Section \ref{SignalSegmentation} for details.
     \item \textbf{[Feature Extraction]}
           We extract multiple features from each segment. See Section \ref{FeatureSets} for details.
     \item \textbf{[Anomaly Detection per Segment]}
           The features from each segment are fed into a trained anomaly detector. Each \textit{segment} is marked as either ``normal'' or ``anomaly''.
     \item \textbf{[Voting]}
-          A word is flagged as an ``anomaly'', if the number of ``normal'' segments it contains does not exceed $T_{votes}$, a predetermined threshold.
+          A word is flagged as an ``anomaly'', if the number of ``normal'' segments it contains does not exceed $T_{votes}$, a calibrated threshold.
     \item \textbf{[Suspicion Meter]}
           We keep a counter of anomalous words. Each time a word is declared as an ``anomaly'', the counter is increased by 1, and each time a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a threshold of $T_{suspicion}$ an alarm is raised.
   \end{enumerate}
@@ -285,9 +283,9 @@
   We gather the decisions made by the different LOF detectors for all segments of the same word. The number of segments that have been identified as normal is subjected to a voting threshold $T_{votes}$. If it does not exceed $T_{votes}$, the word is flagged as an ``anomaly'', otherwise, it is flagged as ``normal''.
   
 \sublevel{Suspicion Meter}
-  According to our adversary model, an attacker tampers with the system once. Therefore, we expect the true label of all words int the incoming stream to be identical - either all words originate from the original system, or all words originate from a compromised system. This fact guarantees that larger the number of words we base our decision on, the lower the probability of making an error. For this purpose we incorporate what we call a suspicion meter.
+  According to our adversary model, an attacker tampers with the system only once. Therefore, we expect the true label of all words in the incoming stream to be identical - either all the words originate from the original system, or all the words originate from a compromised system. We utilize this attack model to reduce the probability of making an error. Taking note from \cite{kneib2018scission} we incorporate an anomaly counter, which we name the suspicion meter.
   
-  The suspicion meter is a counter that is updated on the arrival of a new word. The counter starts from 0. When a word is declared as an ``anomaly'', the counter is increased by 1, and when a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a threshold of $T_{suspicion}$ an alarm is raised.
+  The suspicion meter is a counter that is updated on the arrival of a new word. Initially, the counter starts at 0. When a word is declared as an ``anomaly'', the counter is increased by 1, and when a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a calibrated threshold of $T_{suspicion}$ an alarm is raised.
   
 \level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
@@ -349,7 +347,7 @@
   In our work we compare the performance of the feature sets described below.
  
 {\bf Raw Time-Domain Samples.}
-  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the the segment type, as shown in Table \ref{tab:feature_set_sizes}. Note that since the data was downsampled (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a realistic choice.
+  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes}. At the sample rate we use (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a practical choice.
   
 {\bf Generic Time-Domain Feature Set.}
   As discussed in Section \ref{RelatedWork}, in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids, kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
@@ -450,7 +448,7 @@
   The transmitters were connected to one or more of the following receivers:
   \begin{enumerate}
     \item An EDCU, a proprietary device manufactured by \textit{Astronautics C.A. LTD.} \cite{astronautics2019edcu}. The device has two receivers which we label \(\text{P}_1\) and \(\text{P}_2\).
-    \item The Holt HI-3220PQ chips also host 16 integrated line receivers. We use 2 of the ports with the two boards. We label the receivers the same way as the transmitters with \(\text{H}_{xy}\), where x is the board number as before, and y is the receiver number.
+    \item The ADK-3220 Evaluation boards also host 16 integrated line receivers. We use 2 of the ports with the two boards. We label the receivers the same way as the transmitters with \(\text{H}_{xy}\), where x is the board number as before, and y is the receiver number.
   \end{enumerate}
   
   For sampling we used a Keysight DSO9254A scope. All signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
@@ -534,8 +532,8 @@
     \end{tabular}
   \end{table}
   
-\sublevel{Perlimenary Tests}
-  Before we start with the evaluation, we perform a naive proof of concept. Reduce traces of whole words (about 1600 samples) to 2 dimensions with PCA.
+\sublevel{Preliminary Tests}
+  Before we started evaluation of our IDS, we performed a naive proof of concept to assess the ``detectability'' of hardware changes. To do so we reduced traces of whole words (about 1600 samples) to 2 dimensions with Primary Component Analysis (PCA) \cite{pearson1901liii}.
   
   \begin{figure}[t]
     \centering
@@ -544,7 +542,7 @@
     \label{fig:pca_by_message}
   \end{figure}
   
-  PCA naturally separates the words by the value of the message they transmit. However, if we zoom in on one word group, we can see that differences in the transmitter and in the receiver also generate visible clusters, as opposed to the precense or lack of an additional transmitter.
+  As we can see in Figure \ref{fig:pca_by_message} PCA naturally separates the words by the value of the message they transmit. However, if we zoom in on one word group, we can see in Figure \ref{fig:pca_by_tx_id} that differences in the transmitter and in the receiver also generate visible clusters.
   
   \begin{figure}[t]
     \centering
@@ -571,7 +569,7 @@
   
   The fact that we are able to cluster words by their transmitter or receiver indicate that the information needed to achieve this is present in the trace of the word. On the other hand, failure to do so in the case of an additional receiver does not tell us that it is impossible, only that it is not achieved by PCA to 2 dimensions, though it hints us that an additional receiver introduces more subtle changes to the form of the signal than a hardware switch.
   
-  Of course, we can't use this naive method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. Second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a tampered system. In the real world, we are only allowed to use samples from the guarded bus to train our anomaly detector. Still, the above figures provide positive evidence that transmitter switch and receiver switch change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
+  Of course, we can't use this naive method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. Second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a rogue system. In a real IDS, we are only allowed to use samples from the guarded bus to train our anomaly detector. Still, the above figures provide positive evidence that transmitter switches and receiver switches change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
   
 \sublevel{Detection based on a Single Word - Feature Set Comparison} \label{FeatureSetComparison}
 \subsublevel{Methodology}
@@ -579,9 +577,9 @@
   
   In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. The measurements labeled as anomalies are not present in the training set.
   
-  For the purpose of comparing the different feature sets, we set $T_{suspicion} = 1$. We the run our algorithm and calculate the false alarm and misdetection rates (FAR \& MDR respectively) as functions of $T_{voting}$. Next we then find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
+  For the purpose of comparing the different feature sets, we set $T_{suspicion} = 1$. We then run our algorithm and calculate the false alarm and misdetection rates (FAR \& MDR respectively) as functions of $T_{voting}$. Next we find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
   
-  In our graphs we convert the ``EER to false alarms per second'' (FA/Sec) under normal operation (system unaltered by an adversary). This gives a more concrete meaning to the numbers. The FA/Sec is calculated by multiplying the EER by the message rate, and is the inverse of mean time between failures. Note that each word lasts 36 bit times, because the protocol mandates a minimum inter-word gap of at least 4 bit times.
+  In our graphs we convert the EER to ``false alarms per second'' (FA/Sec) under normal operation (system unaltered by an adversary). This gives a more concrete meaning to the numbers. The FA/Sec is calculated by multiplying the EER by the message rate, and is the inverse of mean time between failures. Note that each word lasts 36 bit times, because the protocol mandates a minimum inter-word gap of at least 4 bit times. Thus the FA/Sec metric is defined as:
   
   \[FA/Sec = \frac{1}{MTBF} = EER \cdot \frac{100 \sfrac{Kbits}{sec}}{36bits}\]
   
@@ -635,8 +633,6 @@
   
   Another thing to observe is that in both Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
   
-  We continue to evalueate the performance of the complete method as a function of $T_{suspicion}$. We select the Raw feature set and set $T_{votes} = 100$.
-  
 \subsublevel{Identifying a Rogue Receiver Switch}
   In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments: One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a a receiver.
   
@@ -671,52 +667,56 @@
     \label{fig:load_results}
   \end{figure}
 
-\sublevel{Performance of the Complete Method}
-  In Section \ref{FeatureSetComparison} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue transmitter. We now continue our evaluation with these two feature sets. We examine how the performance can be improved when we increase $T_{suspicion}$, factoring into our detector's decision data from more than one word.  We do not discuss how to identify an additional receiver, since we could not identify it with sufficient certainty in Section \ref{FeatureSetComparison}.
+\level{Performance of the Complete Method} \label{PerformanceEvaluationCompleteMethod}
+  \textcolor{blue}{We continue to evalueate the performance of the complete method as a function of $T_{suspicion}$. We select the Raw feature set and set $T_{votes} = 100$.}
   
-  From each configuration, i.e.\ transmitter-receiver pair, we have a trace of 1968 words that were transmitted sequentially. We run the detection algorithm with a specific value of $T_{suspicion}$
+  The results we attained in \ref{FeatureSetComparison} are encouraging: we can successfully fingerprint a transmitter based on a single word. However, the FA/Sec metric of around 5 alarms per second is still too high for a XXX system. To reduce the FA/Sec rate to near-zero, we analyse multiple words using an anomaly counter, and XXX and alarm only when the counter exceeds $T_{suspicion}$.
+  
+  We examine how the performance can be improved when we increase $T_{suspicion}$, factoring into our detector's decision data from more than one word.  We do not discuss how to identify an additional receiver, since we could not identify it with sufficient certainty in Section \ref{FeatureSetComparison}.
+  
+  In Section \ref{FeatureSetComparison} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue transmitter. We now continue our evaluation with these two feature sets.
+  
+  From each configuration, i.e., transmitter-receiver pair, we have a trace of 1968 words that were transmitted sequentially. We run the detection algorithm with a specific value of $T_{suspicion}$
   For each value of $T_{suspicion}$, we run the 
   
-  We wish to examine the FAR as a function of the counter threshold. For each transmitter-receiver pair in our data set, we repeat the following process. We train an anomaly detector on words from the chosen pair. We run our algorithm with $T_{voting} = 100$ and a choice of $T_{suspicion}$ on words from the test set of the same transmitter-receiver pair and note whether or not an anomaly was detected. We repeat his test 1000 times, each time starting from a random point in time and going over all the words.  Overall there are 18000 measurements \textcolor{blue}{(9 transmitter * 2 receivers * 1000)}. Figure \ref{fig:counter_far} shows the results.
+  We wish to examine the FAR as a function of the counter threshold. For each transmitter-receiver pair in our data set, we repeat the following process. We train an anomaly detector on words from the chosen pair. We run our algorithm with $T_{voting} = 100$ and a choice of $T_{suspicion}$ on words from the test set of the same transmitter-receiver pair and note whether or not an anomaly was detected. We repeat his test 1000 times, each time starting from a random point in time and going over all the words for the 2 feature sets.  Overall there are 18000 measurements \textcolor{blue}{(9 transmitter * 2 receivers * 1000 for each feature set)}. Figure \ref{fig:counter_far} shows the results.
   
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_far.png}
-    \caption{FAR as a function of $T_{suspicion}$. $T_{votes} = 1$}
+    \caption{FAR as a function of $T_{suspicion}$. $T_{votes} = 100$}
     \label{fig:counter_far}
   \end{figure}
   
-  As expected, the false alarm rate decreases as $T_{suspicion}$ increases. For $T_{suspicion}$ greater than 16, there were no false alarms. We note that although this is the best result we could achieve in our tests, it does not guarantee a FAR of 0\%. We can only say that the probability of a false alarm is too low for one to manifest itself in our data set.
+  As expected, the false alarm rate decreases as $T_{suspicion}$ increases. For $T_{suspicion}$ greater than 16, there were no false alarms.
   
-  Measuring the MDR is 0, since given sufficient time an anomaly will always be detected. Instead of measuring the MDR, we measure the time it takes for our detector to raise an alarm. The process is similar to the process of measuring the FAR. Instead of testing the trained detector on words from the same transmitter-receiver pairs, on which it was trained, we test it words from different pairs, according to the adversary model that is being simulated, as explained in section \ref{FeatureSetComparison}. We run our algorithm with $T_{voting} = 100$. The Raw feature set is used for measuring a rogue transmitter detection, and the polynomial feature set is used when detecting a rogue receiver. We count the number of words it takes for the detector to raise an alarm. Overall, for a rogue transmitter there are 14400 measurements and for a rogue receiver there are 8000 measurements for each value of $T_{suspicion}$ \textcolor{blue}{(9 transmitter * 2 receivers * 8 transmitters * 1000, 8 * transmitters * 1000)}.
+  To observe the trade-off of using an anomaly counter, measuring the MDR is ineffective, since given sufficient time an anomaly will eventually be detected. Instead of measuring the MDR, we measure the time it takes for our detector to raise an alarm. The process is similar to the process of measuring the FAR. Instead of testing the trained detector on words from the same transmitter-receiver pairs, on which it was trained, we test it on words from different pairs, according to the adversary model that is being simulated, as explained in section \ref{FeatureSetComparison}. We run our algorithm with a per-word threshold of $T_{voting} = 100$. The Raw feature set is used for measuring a rogue transmitter detection, and the polynomial feature set is used when detecting a rogue receiver. We count the number of words it takes for the detector to raise an alarm. Overall, for a rogue transmitter there are 14400 measurements and for a rogue receiver there are 8000 measurements for each value of $T_{suspicion}$ \textcolor{blue}{(9 transmitter * 2 receivers * 8 transmitters * 1000, 8 * transmitters * 1000)}.
   
-  Figure \ref{fig:counter_detection_time_rogue_tx} shows the maximal time we measured for detecting a rogue transmitter, over all combinations of guarded and attacking transmitters. Figure \ref{fig:counter_detection_time_rogue_rx} shows the same for detecting a rogue receiver. The blue line indicates the lower bound - the time it takes to transmit $T_{suspicion}$ messages. In our test set the average transmission rate is 610 words per second, about 20\% of the full available bandwidth.
+  Figure \ref{fig:counter_detection_time_rogue_tx} shows the maximal (worst case) time we measured for detecting a rogue transmitter, over all combinations of guarded and attacking transmitters. Figure \ref{fig:counter_detection_time_rogue_rx} shows the same for detecting a rogue receiver. The blue line indicates the lower bound - the time it takes to transmit $T_{suspicion}$ messages. In our test set the average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth.
   
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_tx-attack.png}
-    \caption{Maximal amount of time for detecting a rogue transmitter. $T_{votes} = 1$}
+    \caption{Maximal length of time for detecting a rogue transmitter. $T_{votes} = 100$}
     \label{fig:counter_detection_time_rogue_tx}
   
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_rx-attack.png}
-    \caption{Minimal amount of time for detecting a rogue receiver. $T_{votes} = 1$}
+    \caption{Maximal length of time for detecting a rogue receiver. $T_{votes} = 100$}
     \label{fig:counter_detection_time_rogue_rx}
   \end{figure}
   
   \textcolor{blue}{One graph goes up to 200, while the second one only goes up to 100, because our test set has only 3 seconds of recordings (per configuration). Should I address it directly? Ignore it? Cut both graphs at 100 to avoid questions?}
   
-  In both cases, the maximal observed detection time rises faster than the theoretical lower bound. For rogue transmitter detection, the maximal time is of the same order of magnitude of as the lower bound, while for the case of rogue receiver detection, the maximal time is an order of magnitude higher. The difference is due to the difference in MD rates for a single word, as seen in section \ref{FeatureSetComparison}.
+  The figures show that the suspicion meter reduces false alarms at the expense of delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
   
-  The suspicion meter reduces false alarms at the expense of delaying the detection of an attack. We find the trade-off worthwhile. A rogue transmitter is detected in under a second, which greatly reduces the adversaries ability to mount a successful attack. A rogue receiver is detected in several seconds, which is still good. In addition, it is a passive attack which cannot cause damage directly, therefore it is not as urgent to detect it.
+  In both cases, the maximal observed detection time rises faster than theoretical lower bound. For rogue transmitter detection, the maximal time is of the same order of magnitude of as the lower bound, while for the case of rogue receiver detection, the maximal time is an order of magnitude higher. The difference is due to the difference in MD rates for a single word, as seen in section \ref{FeatureSetComparison}.
   
 \level{Conclusions} \label{Conclusions}
-  We presented our hardware fingerprinting method for the ARINC 429 bus. The method could be used to retrofit source authentication into existing avionic systems with minimal effort.
+  We presented a first hardware fingerprinting method for the ARINC 429 bus. The method can be used to retrofit source authentication into existing avionic systems with low effort.
   
-  We showed that our method is especially effective for identifying a technician attack, in which an adversary replaces the guarded transmitter LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
+  We showed that our method is especially effective for identifying a technician attack, in which adversary replaces the guarded transmitter LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
   
-  We showed that the method can also detect changes in the transmission line. We found that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance on average from all the feature sets we examined, when applied to this task. The error rates are still relatively high in this scenario and more research is required.
-  
-  We saw that the addition of a receiver LRU does not alter the signal to a degree which is effectively detectable by using our method.
+  We showed that the method can also detect a switched receiver. We found that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance among the feature sets we examined, when applied to this task.
   
   Further work needs to be done in order to evaluate the sensitivity of the hardware fingerprints to external changes such as fluctuations in temperature or supply voltage levels, and to evaluate its stability over time.
   
