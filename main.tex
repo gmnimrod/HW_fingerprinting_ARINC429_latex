@@ -26,6 +26,9 @@
 \usepackage{tabularx}
 \usepackage{xfrac}
 \usepackage{etoolbox}  % newtoggle
+\usepackage{adjustbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
 
 \usepackage{hyperref}
 \hypersetup{
@@ -191,11 +194,13 @@
   
   We describe the adversary models that our method is effective at protecting against. We then design an intrusion detection system with hardware fingerprinting capabilities, and evaluate its performance in these attack scenarios.
   
-  We explore the ability to distinguish between devices from different vendors and between devices of the same model. We find that it is possible to perfectly distinguish between devices from different vendors by their electric signal, with close to zero false alarms. We also find that our method can also distinguish between devices from the same vendor and model, which are supposedly identical, with low false alarm rates. We see that within this group, some devices are more unique that others.
+  We explore the ability to distinguish between devices from different vendors and between devices of the same model. We find that it is possible to distinguish between transmitters and receivers by their electric signal, with close to zero false alarms. This observation applies both to devices from different vendors and to devices from the same vendor and model, which are supposedly identical.
   
   We explore the effect of receivers and transmission lines on performance. We see that adding a receiver does not yield a significant change in the signal. However, switching a receiver by another receiver, when combined with a change to the transmission line, is detectable by our method.
   
   We compare different feature sets under different the adversarial models. Somewhat surprisingly, we find that using the raw samples, without extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
+  
+  We suggest keeping track of anomalous events using a special counter. We demonstrate both theoretically and empirically that by doing so the number of false alarm can be reduced to zero.
   
   Organization of this \iftoggle{paper} {paper} {work}: In Section \ref{Preliminaries} we describe the ARINC protocol and the adversary model. In Section \ref{Approach} we outline our approach. Section \ref{SignalSegmentation} describes our signal segmentation process. Section \ref{FeatureSets} covers the various feature sets we considered. Sections \ref{PerformanceEvaluation} and \ref{PerformanceEvaluationCompleteMethod} describe an extensive performance evaluation. We conclude with Section \ref{Conclusions}.
   
@@ -287,6 +292,109 @@
   
   The suspicion meter is a counter that is updated on the arrival of a new word. Initially, the counter starts at 0. When a word is declared as an ``anomaly'', the counter is increased by 1, and when a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a calibrated threshold of $T_{suspicion}$ an alarm is raised.
   
+  Under certain assumptions, we can calculate the effect of the suspicion meter on the false alarm rate. Suppose that the probability that a word is detected as anomalous is constant and is independent of the other words. We can describe the value of the counter after word $i$ arrived as a Markov random process. Let $p$ denote the probability, of a word being marked as an anomaly. For a current counter value of $0 < i < T_{suspicion}$ this is the probability that the counter will be increased. The probability that the counter will be decreased is the complement $1 - p$. The first and last states ($i = 0$ and $i = T_{suspicion}$ respectfully) are unique. The counter cannot be decreased below 0. Therefore, when $i = 0$, instead of decreasing, the counter has a $1 - p$ probability of staying at 0. $i = T_{suspicion}$ is a final state. The probability of staying at $i = T_{suspicion}$ is 1. Figure \ref{fig:suspicion_meter} shows, for example, the Markov process that corresponds to $T_{suspicion} = 3$.
+  
+  \begin{figure}
+  \centering
+  \begin{adjustbox}{width=\columnwidth}
+  \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,thick,
+                      main node/.style={circle,draw,font=\sffamily\Large\bfseries},
+                      skip node/.style={font=\sffamily\Large\bfseries}]
+                      
+    %\node[main node] (0) {0};
+    %\node[main node] (1) [right of=0] {1};
+    %\node[main node] (2) [right of=1] {2};
+    %\node[main node] (3) [right of=2] {3};
+    %\node[main node] (4) [right of=3] {4}
+    %
+    %\path[every node/.style={font=\sffamily\small}]
+    %  (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (1)
+    %  (1) edge [bend left] node [below] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (2)
+    %  (2) edge [bend left] node [below] {$1 - p$} (1)
+    %      edge [bend left] node [above] {$p$} (3)
+    %  (3) edge [bend left] node [below] {$1 - p$} (2)
+    %      edge [bend left] node [above] {$p$} (4)
+    %  (4) edge [out=30,in=330,looseness=10] node [right] {$1$} (4)
+    %;
+    
+    \node[main node] (0) {0};
+    \node[main node] (1) [right of=0] {1};
+    \node[main node] (2) [right of=1] {2};
+    \node[main node] (3) [right of=2] {3};
+    
+    \path[every node/.style={font=\sffamily\small}]
+      (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
+          edge [bend left] node [above] {$p$} (1)
+      (1) edge [bend left] node [below] {$1 - p$} (0)
+          edge [bend left] node [above] {$p$} (2)
+      (2) edge [bend left] node [below] {$1 - p$} (1)
+          edge [bend left] node [above] {$p$} (3)
+      (3) edge [out=30,in=330,looseness=10] node [right] {$1$} (3)
+    ;
+    
+    %\node[main node] (0) {0};
+    %\node[main node] (1) [right of=0] {1};
+    %\node[skip node] (2) [right of=1] {\(\cdots\)};
+    %\node[main node] (3) [right of=2] {\(T_{suspicion} - 1\)};
+    %\node[main node] (4) [right of=3] {\(T_{suspicion}\)};
+    %
+    %\path[every node/.style={font=\sffamily\small}]
+    %  (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (1)
+    %  (1) edge [bend left] node [below] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (2)
+    %  (2) edge [bend left] node [below] {$1 - p$} (1)
+    %      edge [bend left] node [above] {$p$} (3)
+    %  (3) edge [bend left] node [below] {$1 - p$} (2)
+    %      edge [bend left] node [above] {$p$} (4)
+    %  (4) edge [out=30,in=330,looseness=10] node [right] {$1$} (4)
+    %;
+    
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Suspicion meter example for $T_{suspicion} = 3$}
+  \label{fig:suspicion_meter}
+  \end{figure}
+  
+  The transition matrix of such a Markov process is given by:
+  \begin{equation}
+    P = \begin{bmatrix}
+      1 - p & p     & 0      & 0 & \cdots & 0 \\
+      1 - p & 0     & p      & 0 & \cdots & 0 \\
+            &       & \vdots &   &       &   \\
+      0     & \cdots & 0 & 1 - p  & 0 & p     \\
+      0     & \cdots & 0 & 0      & 0 & 1
+    \end{bmatrix}
+  \end{equation}
+  The vector \(x^{(n)}\) represents the distribution of probabilities between counter values after word $n$ was processed. The counter always starts at 0. Therefore:
+  \begin{equation}
+    x^{(0)} = \begin{bmatrix}
+    1 & 0 & 0 & \cdots & 0
+    \end{bmatrix}
+  \end{equation}
+  The distribution of probabilities after $n$ words is given by:
+  \begin{equation} \label{eq:prob_after_n_words}
+    x^{(n)} = x^{(0)}P^n
+  \end{equation}
+   The probability of the counter reaching $T_{suspicion}$ in $n$ words or less is the probability of reaching the final state $i = T_{suspicion}$, which is given by element $T_{suspicion} + 1$ of $x^{(n)}$.
+   
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh.png}
+    \caption{Probability for a false alarm during a 10 hour flight}
+    \label{fig:CounterTheoreticalFA}
+    
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_time_vs_thresh.png}
+    \caption{Time until the probability of detection exceeds 99.999\%}
+    \label{fig:CounterTheoreticalTime}
+  \end{figure}
+
+  Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10 hour run as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our experiments. For every value of $p$, if $T_{suspicion}$ is high enough, the FA probability drops to 0. The lower $p$ is, the required minimal $T_{suspicion}$ is lower. Interestingly, even for a very high single word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the false alarm probability drops to 0.
+   
+  Figure \ref{fig:CounterTheoreticalTime} show the time it takes for the probability for a positive detection to reach 99.999\%. Here the words are assumed to originate from a rogue system, therefore $p > 0.5$. A low detection time means that the system is quick at detecting the adversary. The figure shows that the time until detection rises as $T_{suspicion}$ rises. The rise is quicker for low values of $p$. Even so, at the worst case of $p = 0.6$ and $T_{suspicion} = 100$, which is more than required to minimize the false alarm rate, the time until detection reaches 2 seconds.
+   
 \level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
@@ -542,30 +650,27 @@
     \label{fig:pca_by_message}
   \end{figure}
   
-  As we can see in Figure \ref{fig:pca_by_message} PCA naturally separates the words by the value of the message they transmit. However, if we zoom in on one word group, we can see in Figure \ref{fig:pca_by_tx_id} that differences in the transmitter and in the receiver also generate visible clusters.
+  Figure \ref{fig:pca_by_message} shows the result of the PCA on a representetive subset of our data set. In the figure there are 6 distinctive clusters, each one corresponds to a different message. The PCA naturally separates the words by the value of the message they transmit, since this property is responsible for the bulk of the difference between words.
+  
+  Figures \ref{fig:pca_by_tx_id}, \ref{fig:pca_by_rx_id} and \ref{fig:pca_by_load} zoom in on the leftmost cluster, which contains only words with the message \texttt{0x5A5A5A5A}. We see that in fact, the \texttt{0x5A5A5A5A} cluster is made up of smaller clusters. The words are labeled differently in each figure. In Figure \ref{fig:pca_by_tx_id} words are labeled according to the transmitter that sent them. In Figure \ref{fig:pca_by_rx_id} they are labeled according to the primary receiver that was connected to the line ($P_1$ or $P_2$). Lastely, in Figure \ref{fig:pca_by_load} they are labeled according to to the presence and identifier of an additional transmitter. $E_1$ and $E_2$ are removed from Figure \ref{fig:pca_by_rx_id}, because each one of them has only been recorded with one receiver. The Holt devices as transmitters have been removed from \ref{fig:pca_by_load}, because only $E_1$ and $E_2$ have been recorded with additional receivers.
   
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_tx_id__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message 0x5A5A5A5A, label by transmitter ID}
+    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by transmitter ID}
     \label{fig:pca_by_tx_id}
-  \end{figure}
   
-  \begin{figure}[t]
-    \centering
     \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_rx_id__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message 0x5A5A5A5A, label by receiver ID}
+    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by receiver ID}
     \label{fig:pca_by_rx_id}
-  \end{figure}
   
-  \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_load__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message 0x5A5A5A5A, label by additional receiver ID}
+    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by additional receiver ID}
     \label{fig:pca_by_load}
   \end{figure}
   
-  $E_1$ and $E_2$ are removed from Figure \ref{fig:pca_by_rx_id}, because each one of them has only been recorded with one receiver. The Holt devices as transmitters have been removed from \ref{fig:pca_by_load}, because only $E_1$ and $E_2$ have been recorded with additional receivers.
+  \textcolor{blue}{(In Figure \ref{fig:pca_by_tx_id} most (but not all) groups of words from the same transmitter form a cluster that is visibly distinguishable from the others. In \ref{fig:pca_by_rx_id} we can pass a line that separates words from different receivers. In Figure \ref{fig:pca_by_load} we can't separeate words from different groups.)}
   
   The fact that we are able to cluster words by their transmitter or receiver indicate that the information needed to achieve this is present in the trace of the word. On the other hand, failure to do so in the case of an additional receiver does not tell us that it is impossible, only that it is not achieved by PCA to 2 dimensions, though it hints us that an additional receiver introduces more subtle changes to the form of the signal than a hardware switch.
   
@@ -704,8 +809,6 @@
     \caption{Maximal length of time for detecting a rogue receiver. $T_{votes} = 100$}
     \label{fig:counter_detection_time_rogue_rx}
   \end{figure}
-  
-  \textcolor{blue}{One graph goes up to 200, while the second one only goes up to 100, because our test set has only 3 seconds of recordings (per configuration). Should I address it directly? Ignore it? Cut both graphs at 100 to avoid questions?}
   
   The figures show that the suspicion meter reduces false alarms at the expense of delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
   
