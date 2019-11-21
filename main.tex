@@ -2,7 +2,7 @@
 \papertrue
 
 \ifpaper
-\documentclass[compsoc,conference,a4paper]{IEEEtran}
+\documentclass[compsoc,conference,a4paper,10pt,times]{IEEEtran}
 \else
 % 12 pts font
 % two sided document. We later set the margins' size
@@ -120,7 +120,7 @@
   }
 }
 
-\title{Hardware Transmitter Fingerprinting in the ARINC 429 Avionic Bus}
+\title{Hardware Fingerprinting for the ARINC 429 Avionic Bus}
 %\author{Avishai Wool, Nimrod Gilboa Markevich}
 \author{Anonymous}
 
@@ -194,15 +194,21 @@
   
   We describe the adversary models that our method is effective at protecting against. We then design an intrusion detection system with hardware fingerprinting capabilities, and evaluate its performance in these attack scenarios.
   
-  We explore the ability to distinguish between devices from different vendors and between devices of the same model. We find that it is possible to distinguish between transmitters and receivers by their electric signal, with close to zero false alarms. This observation applies both to devices from different vendors and to devices from the same vendor and model, which are supposedly identical.
+  We explore the ability to distinguish between devices from different vendors and between devices of the same model, based on the hardware fingerprints of individual transmitted words. We find that it is possible to distinguish between transmitters and receivers by their electric signal, with low error rates. This observation applies both to devices from different vendors and to devices from the same vendor and model, which are supposedly identical.
   
   We explore the effect of receivers and transmission lines on performance. We see that adding a receiver does not yield a significant change in the signal. However, switching a receiver by another receiver, when combined with a change to the transmission line, is detectable by our method.
   
   We compare different feature sets under different the adversarial models. Somewhat surprisingly, we find that using the raw samples, without extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
   
-  We suggest keeping track of anomalous events using a special counter. We demonstrate both theoretically and empirically that by doing so the number of false alarm can be reduced to zero.
+  In order to drive the false-alarms-per-second rate to zero, we suggest to augment the per-word anomaly detection by a ``suspicion counter'' that increases with each word flagged as an anomaly, and decreases with every normal word. We first analyze the suspicion counter using a Markov-chain model, and then evaluate the full system's performance using the empirical data. 
+   We demonstrate that our intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 200ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
-  Organization of this \iftoggle{paper} {paper} {work}: In Section \ref{Preliminaries} we describe the ARINC protocol and the adversary model. In Section \ref{Approach} we outline our approach. Section \ref{SignalSegmentation} describes our signal segmentation process. Section \ref{FeatureSets} covers the various feature sets we considered. Sections \ref{PerformanceEvaluation} and \ref{PerformanceEvaluationCompleteMethod} describe an extensive performance evaluation. We conclude with Section \ref{Conclusions}.
+  
+  \textbf{Organization}: Section \ref{Preliminaries} describes the ARINC 429 protocol and the adversary model. 
+  Section \ref{TheDataSet} presents the data set we collected
+  and Section \ref{PreliminaryTests} demonstrates a proof of concept.
+  Section \ref{Approach} outlines our hardware fingerprinting approach. Section \ref{SignalSegmentation} describes our signal segmentation process and Section \ref{FeatureSets} covers the various feature sets we considered. 
+  Section \ref{PerformanceEvaluationSingleWord} describes the empirical evaluation of our detection method when it is based on single words. Section \ref{ModelingSuspicionCounter} presents a Markov-chain analysis of the suspicion counter, and Section \ref{PerformanceEvaluationCompleteMethod} describes the emirical performance evaluation of the complete method. We conclude with Section \ref{Conclusions}.
   
 \level{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
@@ -242,10 +248,148 @@
   % An attacker may or may not posses knowledge of the bus topology - i.e., number of receivers, distances, and models of connected devices. The attacker will try their best to mimic the characteristics of the original transmitter. In the most case for the defenders, the attacker will use a transmitter which is identical (same manufacturer and model) to the compromised transmitter. (True statement? It is theoretically possible to use a massive signal generator, or maybe a dedicated device that can adjust itself to the real transmitter).
 
 \subsublevel{A Rogue Receiver}
-  In this attack type of attack the adversary replaces a legitimate receiver LRU by or rogue one, or adds a rogue receiver LRU without detaching another LRU. By doing this the adversary gains access to the transmitted data, which might be otherwise inaccessible, and may use this data to cause harm through another attack channel.
+  In this attack type of attack the adversary replaces a legitimate receiver LRU by a rogue one, or adds a rogue receiver LRU without detaching another LRU. By doing this the adversary gains access to the transmitted data, which might be otherwise inaccessible, and may use this data to cause harm through another attack channel.
 
-\subsublevel{An Additional Transmitter}
-  This type of attack is actually not possible to perform on the ARINC bus, wherein the adversary is adding another transmitter LRU without detaching the legitimate transmitter. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus violates the protocol, therefore an adversary cannot simply add a transmitter to the bus. Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by software only, since its wiring does not permit it. Thus, the adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitter during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
+\subsublevel{Adding a Transmitter or Converting a Receiver to a Transmitter}
+  An attack wherein the adversary adds another transmitter LRU to the bus, without detaching the legitimate transmitter, is actually not possible to perform on the ARINC bus. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus irreparably violates the electrical properties of the system. Therefore an adversary cannot simply add a transmitter (built from off-the-shelf components) to the bus. 
+  The adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitter during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
+
+  Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by hijacking its software, since the LRU's wiring does not permit it. 
+ 
+\level{The Data Set} \label{TheDataSet}
+  To the best of our knowledge, there is no publicly available data set that contains high rate voltage samples of ARINC 429 protocol. We gathered our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.
+  
+  We sampled two types of transmitters:
+  \begin{enumerate}
+     \item An M4K429RTx test equipment from \textit{Excalibur Systems} \cite{excalibur2019m4k429rtx}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
+     \item ADK-3220 Evaluation boards, manufactured by \textit{Holt Integrated Circuits INC.} \cite{holt2019evaluation}. The board contains a HI-3220PQ ARINC 429 Protocol IC connected to 8 HI-8597PSIFF line drivers chips. We use 4 of the transmitters and two different boards. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
+  \end{enumerate}
+  
+  The transmitters were connected to one or more of the following receivers:
+  \begin{enumerate}
+    \item An EDCU, a proprietary device manufactured by \textit{Astronautics C.A. LTD.} \cite{astronautics2019edcu}. The device has two receivers which we label \(\text{P}_1\) and \(\text{P}_2\).
+    \item The ADK-3220 Evaluation boards also host 16 integrated line receivers. We use 2 of the ports with the two boards. We label the receivers the same way as the transmitters with \(\text{H}_{xy}\), where x is the board number as before, and y is the receiver number.
+  \end{enumerate}
+  
+  For sampling we used a Keysight DSO9254A scope. All signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
+  
+  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
+  
+  \begin{figure}[t]
+    \centering
+    %Use 1 for the two columns
+    \includegraphics[width=1.0\linewidth, angle=0]{Images/setup_3}
+    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
+    \label{fig:SetupImage}
+  \end{figure}
+  
+  All the devices transmitted the same data at a bit rate of 100 Kbits/sec. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Note that these words include all the possible segment types. By transmitting the same data on all devices we make sure that in our experiments the IDS cannot unintentionally use the message content to make its decisions.
+  
+  In addition to the recordings from different transmitter-receiver pairs, we recorded \(\text{E}_1\) and \(\text{E}_2\) transmitting to \(\text{P}_1\) and \(\text{P}_2\) respectfully, with different Holt devices attached as additional receivers.
+  
+  Table \ref{tab:RecordingsSummery} shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
+  
+  \begin{table}
+    \caption{Distribution of Recorded Words in the Data Set}
+    \label{tab:RecordingsSummery}
+    \centering
+    \begin{tabular}{|c | c c c|} 
+      \hline
+      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
+      \hline\hline
+      1 & \(\text{E}_1\) & \(\text{P}_1\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      2 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      3 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      4 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      5 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      6 & \(\text{H}_{10}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      7 & \(\text{H}_{11}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      8 & \(\text{H}_{12}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      9 & \(\text{H}_{13}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      10 & \(\text{H}_{20}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      11 & \(\text{H}_{21}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      12 & \(\text{H}_{22}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      13 & \(\text{H}_{23}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      14 & \(\text{E}_2\) & \(\text{P}_2\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      15 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      16 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      17 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      18 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      19 & \(\text{H}_{10}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      20 & \(\text{H}_{11}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      21 & \(\text{H}_{12}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      22 & \(\text{H}_{13}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      23 & \(\text{H}_{20}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      24 & \(\text{H}_{21}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      25 & \(\text{H}_{22}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+    \end{tabular}
+  \end{table}
+ 
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__by_message.png}
+    \caption{PCA dimensionality reduction of whole words}
+    \label{fig:pca_by_message}
+  \end{figure}
+  
+ 
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_tx_id__zoom_message_5A5A5A5A.png}
+    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by transmitter ID}
+    \label{fig:pca_by_tx_id}
+  
+    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_rx_id__zoom_message_5A5A5A5A.png}
+    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by receiver ID}
+    \label{fig:pca_by_rx_id}
+  
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_load__zoom_message_5A5A5A5A.png}
+    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by additional receiver ID}
+    \label{fig:pca_by_load}
+  \end{figure}
+  
+ 
+\level{Preliminary Tests} \label{PreliminaryTests}
+  Before we started evaluating our IDS, we performed a basic proof of concept investigation to assess the ``detectability'' of hardware changes. To do so we reduced raw traces of whole words (about 1600 samples) to 2 dimensions with Primary Component Analysis (PCA) \cite{pearson1901liii}.
+ 
+  Figure \ref{fig:pca_by_message} shows the result of the PCA on a representative subset of our data set. In the figure there are 6 distinctive clusters, each correspond in to the data of a different message. The PCA naturally separates the words by the value of the message they transmit, since this property is responsible for the bulk of the difference between words.
+  
+  In Figure \ref{fig:pca_by_tx_id} we zoom in on the leftmost cluster, which contains only words with the message \texttt{0x5A5A5A5A}. We see that in fact, the \texttt{0x5A5A5A5A} cluster is made up of smaller clusters. The words are labeled according to the transmitter that sent them. The figure shows that most (but not all) groups of words from the same transmitter form a cluster that is visibly distinguishable from the others, as demonstrated by the dashed ellipses. This indicates that the information needed to distinguish between different transmitters is present in the sampled words.
+  
+  Figure \ref{fig:pca_by_rx_id} shows the same words, labeled according to the primary receiver that was connected to the line ($P_1$ or $P_2$). The transmitters $E_1$ and $E_2$ are removed from the figure because each was only recorded with one receiver. We see that the two labels are visually distinguishable, as demonstrated by the dashed curved line. We conclude that receivers, as well as transmitters, can be fingerprinted.
+  
+  Lastly, in Figure \ref{fig:pca_by_load} the words are labeled according to the presence and identity of an \textit{additional receiver} on the bus. Only words from transmitters $E_1$ and $E_2$ are displayed, because the Holt transmitters were not recorded with additional receivers (consult Table \ref{tab:RecordingsSummery}. The figure shows that identifying an additional receiver is much more difficult than identifying a transmitter or a receiver, since we cannot separate words from different labels by a simple line or convex shape. This fact does not mean that it is impossible to detect an additional transmitter, only that it requires more information than that which is present in the first two primary components alone.
+  
+  Of course, we can't use this basic PCA method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. And second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a rogue system---in a real IDS, we can only use samples from the guarded bus to train our anomaly detector. Still, the above figures provides positive evidence that transmitter switches and receiver switches change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
 
 \level{The Hardware Fingerprinting Approach} \label{Approach}
   The fingerprinting IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
@@ -267,12 +411,12 @@
           The features from each segment are fed into a trained anomaly detector. Each \textit{segment} is marked as either ``normal'' or ``anomaly''.
     \item \textbf{[Voting]}
           A word is flagged as an ``anomaly'', if the number of ``normal'' segments it contains does not exceed $T_{votes}$, a calibrated threshold.
-    \item \textbf{[Suspicion Meter]}
+    \item \textbf{[Suspicion Counter]}
           We keep a counter of anomalous words. Each time a word is declared as an ``anomaly'', the counter is increased by 1, and each time a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a threshold of $T_{suspicion}$ an alarm is raised.
   \end{enumerate}
   
 \sublevel{Anomaly Detection per Segment}
-  Our method uses per segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in Section \ref{SignalSegmentation}. A segment's characteristics depend on its type. Therefore we opted to train a different anomaly detector for each type of segment.
+  Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in Section \ref{SignalSegmentation}. A segment's characteristics depend on its type. Therefore we opted to train a different anomaly detector for each type of segment.
   
   Anomaly detection, sometimes called novelty detection, is a well established. There are numerous outlier and anomaly detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
   
@@ -287,114 +431,11 @@
 \sublevel{Voting}
   We gather the decisions made by the different LOF detectors for all segments of the same word. The number of segments that have been identified as normal is subjected to a voting threshold $T_{votes}$. If it does not exceed $T_{votes}$, the word is flagged as an ``anomaly'', otherwise, it is flagged as ``normal''.
   
-\sublevel{Suspicion Meter}
-  According to our adversary model, an attacker tampers with the system only once. Therefore, we expect the true label of all words in the incoming stream to be identical - either all the words originate from the original system, or all the words originate from a compromised system. We utilize this attack model to reduce the probability of making an error. Taking note from \cite{kneib2018scission} we incorporate an anomaly counter, which we name the suspicion meter.
+\sublevel{Suspicion Counter}
+  According to our adversary model, an attacker tampers with the system only once. Therefore, we expect the true label of all words in the incoming stream to be identical - either all the words originate from the original system, or all the words originate from a compromised system. We utilize this attack model to reduce the probability of making an error. Taking note from \cite{kneib2018scission} we incorporate an anomaly counter, which we name the suspicion counter.
   
-  The suspicion meter is a counter that is updated on the arrival of a new word. Initially, the counter starts at 0. When a word is declared as an ``anomaly'', the counter is increased by 1, and when a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a calibrated threshold of $T_{suspicion}$ an alarm is raised.
+  The suspicion counter is a counter that is updated on the arrival of a new word. Initially, the counter starts at 0. When a word is declared as an ``anomaly'', the counter is increased by 1, and when a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a calibrated threshold of $T_{suspicion}$ an alarm is raised.
   
-  Under certain assumptions, we can calculate the effect of the suspicion meter on the false alarm rate. Suppose that the probability that a word is detected as anomalous is constant and is independent of the other words. We can describe the value of the counter after word $i$ arrived as a Markov random process. Let $p$ denote the probability, of a word being marked as an anomaly. For a current counter value of $0 < i < T_{suspicion}$ this is the probability that the counter will be increased. The probability that the counter will be decreased is the complement $1 - p$. The first and last states ($i = 0$ and $i = T_{suspicion}$ respectfully) are unique. The counter cannot be decreased below 0. Therefore, when $i = 0$, instead of decreasing, the counter has a $1 - p$ probability of staying at 0. $i = T_{suspicion}$ is a final state. The probability of staying at $i = T_{suspicion}$ is 1. Figure \ref{fig:suspicion_meter} shows, for example, the Markov process that corresponds to $T_{suspicion} = 3$.
-  
-  \begin{figure}
-  \centering
-  \begin{adjustbox}{width=\columnwidth}
-  \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,thick,
-                      main node/.style={circle,draw,font=\sffamily\Large\bfseries},
-                      skip node/.style={font=\sffamily\Large\bfseries}]
-                      
-    %\node[main node] (0) {0};
-    %\node[main node] (1) [right of=0] {1};
-    %\node[main node] (2) [right of=1] {2};
-    %\node[main node] (3) [right of=2] {3};
-    %\node[main node] (4) [right of=3] {4}
-    %
-    %\path[every node/.style={font=\sffamily\small}]
-    %  (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
-    %      edge [bend left] node [above] {$p$} (1)
-    %  (1) edge [bend left] node [below] {$1 - p$} (0)
-    %      edge [bend left] node [above] {$p$} (2)
-    %  (2) edge [bend left] node [below] {$1 - p$} (1)
-    %      edge [bend left] node [above] {$p$} (3)
-    %  (3) edge [bend left] node [below] {$1 - p$} (2)
-    %      edge [bend left] node [above] {$p$} (4)
-    %  (4) edge [out=30,in=330,looseness=10] node [right] {$1$} (4)
-    %;
-    
-    \node[main node] (0) {0};
-    \node[main node] (1) [right of=0] {1};
-    \node[main node] (2) [right of=1] {2};
-    \node[main node] (3) [right of=2] {3};
-    
-    \path[every node/.style={font=\sffamily\small}]
-      (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
-          edge [bend left] node [above] {$p$} (1)
-      (1) edge [bend left] node [below] {$1 - p$} (0)
-          edge [bend left] node [above] {$p$} (2)
-      (2) edge [bend left] node [below] {$1 - p$} (1)
-          edge [bend left] node [above] {$p$} (3)
-      (3) edge [out=30,in=330,looseness=10] node [right] {$1$} (3)
-    ;
-    
-    %\node[main node] (0) {0};
-    %\node[main node] (1) [right of=0] {1};
-    %\node[skip node] (2) [right of=1] {\(\cdots\)};
-    %\node[main node] (3) [right of=2] {\(T_{suspicion} - 1\)};
-    %\node[main node] (4) [right of=3] {\(T_{suspicion}\)};
-    %
-    %\path[every node/.style={font=\sffamily\small}]
-    %  (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
-    %      edge [bend left] node [above] {$p$} (1)
-    %  (1) edge [bend left] node [below] {$1 - p$} (0)
-    %      edge [bend left] node [above] {$p$} (2)
-    %  (2) edge [bend left] node [below] {$1 - p$} (1)
-    %      edge [bend left] node [above] {$p$} (3)
-    %  (3) edge [bend left] node [below] {$1 - p$} (2)
-    %      edge [bend left] node [above] {$p$} (4)
-    %  (4) edge [out=30,in=330,looseness=10] node [right] {$1$} (4)
-    %;
-    
-  \end{tikzpicture}
-  \end{adjustbox}
-  \caption{Suspicion meter example for $T_{suspicion} = 3$}
-  \label{fig:suspicion_meter}
-  \end{figure}
-  
-  The transition matrix of such a Markov process is given by:
-  \begin{equation}
-    P = \begin{bmatrix}
-      1 - p & p     & 0      & 0 & \cdots & 0 \\
-      1 - p & 0     & p      & 0 & \cdots & 0 \\
-            &       & \vdots &   &       &   \\
-      0     & \cdots & 0 & 1 - p  & 0 & p     \\
-      0     & \cdots & 0 & 0      & 0 & 1
-    \end{bmatrix}
-  \end{equation}
-  The vector \(x^{(n)}\) represents the distribution of probabilities between counter values after word $n$ was processed. The counter always starts at 0. Therefore:
-  \begin{equation}
-    x^{(0)} = \begin{bmatrix}
-    1 & 0 & 0 & \cdots & 0
-    \end{bmatrix}
-  \end{equation}
-  The distribution of probabilities after $n$ words is given by:
-  \begin{equation} \label{eq:prob_after_n_words}
-    x^{(n)} = x^{(0)}P^n
-  \end{equation}
-   The probability of the counter reaching $T_{suspicion}$ in $n$ words or less is the probability of reaching the final state $i = T_{suspicion}$, which is given by element $T_{suspicion} + 1$ of $x^{(n)}$.
-   
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh.png}
-    \caption{Probability for a false alarm during a 10 hour flight}
-    \label{fig:CounterTheoreticalFA}
-    
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_time_vs_thresh.png}
-    \caption{Time until the probability of detection exceeds 99.999\%}
-    \label{fig:CounterTheoreticalTime}
-  \end{figure}
-
-  Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10 hour run as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our experiments. For every value of $p$, if $T_{suspicion}$ is high enough, the FA probability drops to 0. The lower $p$ is, the required minimal $T_{suspicion}$ is lower. Interestingly, even for a very high single word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the false alarm probability drops to 0.
-   
-  Figure \ref{fig:CounterTheoreticalTime} show the time it takes for the probability for a positive detection to reach 99.999\%. Here the words are assumed to originate from a rogue system, therefore $p > 0.5$. A low detection time means that the system is quick at detecting the adversary. The figure shows that the time until detection rises as $T_{suspicion}$ rises. The rise is quicker for low values of $p$. Even so, at the worst case of $p = 0.6$ and $T_{suspicion} = 100$, which is more than required to minimize the false alarm rate, the time until detection reaches 2 seconds.
-   
 \level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
@@ -542,142 +583,9 @@
     }
   \end{table}
   
-\level{Performance Evaluation} \label{PerformanceEvaluation}
 
-\sublevel{The Data Set} \label{TheDataSet}
-  To the best of our knowledge, there is no publicly available data set that contains high rate voltage samples of ARINC 429 protocol. We gathered our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.
-  
-  We sampled two types of transmitters:
-  \begin{enumerate}
-     \item An M4K429RTx test equipment from \textit{Excalibur Systems} \cite{excalibur2019m4k429rtx}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
-     \item ADK-3220 Evaluation boards, manufactured by \textit{Holt Integrated Circuits INC.} \cite{holt2019evaluation}. The board contains a HI-3220PQ ARINC 429 Protocol IC connected to 8 HI-8597PSIFF line drivers chips. We use 4 of the transmitters and two different boards. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
-  \end{enumerate}
-  
-  The transmitters were connected to one or more of the following receivers:
-  \begin{enumerate}
-    \item An EDCU, a proprietary device manufactured by \textit{Astronautics C.A. LTD.} \cite{astronautics2019edcu}. The device has two receivers which we label \(\text{P}_1\) and \(\text{P}_2\).
-    \item The ADK-3220 Evaluation boards also host 16 integrated line receivers. We use 2 of the ports with the two boards. We label the receivers the same way as the transmitters with \(\text{H}_{xy}\), where x is the board number as before, and y is the receiver number.
-  \end{enumerate}
-  
-  For sampling we used a Keysight DSO9254A scope. All signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
-  
-  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
-  
-  \begin{figure}[t]
-    \centering
-    %Use 1 for the two columns
-    \includegraphics[width=1.0\linewidth, angle=0]{Images/setup_3}
-    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
-    \label{fig:SetupImage}
-  \end{figure}
-  
-  All the devices transmitted the same data at a bit rate of 100 Kbits/sec. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Note that these words include all the possible segment types. By transmitting the same data on all devices we make sure that in our experiments the IDS cannot unintentionally use the message content to make its decisions.
-  
-  In addition to the recordings from different transmitter-receiver pairs, we recorded \(\text{E}_1\) and \(\text{E}_2\) transmitting to \(\text{P}_1\) and \(\text{P}_2\) respectfully, with different Holt devices attached as additional receivers.
-  
-  Table \ref{tab:RecordingsSummery} shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
-  
-  \begin{table}
-    \caption{Distribution of Recorded Words in the Data Set}
-    \label{tab:RecordingsSummery}
-    \centering
-    \begin{tabular}{|c | c c c|} 
-      \hline
-      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
-      \hline\hline
-      1 & \(\text{E}_1\) & \(\text{P}_1\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      2 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{10}\) & 4920 \\
-      \hline
-      3 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{12}\) & 4920 \\
-      \hline
-      4 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{20}\) & 4920 \\
-      \hline
-      5 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{22}\) & 4920 \\
-      \hline
-      6 & \(\text{H}_{10}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      7 & \(\text{H}_{11}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      8 & \(\text{H}_{12}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      9 & \(\text{H}_{13}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      10 & \(\text{H}_{20}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      11 & \(\text{H}_{21}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      12 & \(\text{H}_{22}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      13 & \(\text{H}_{23}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      14 & \(\text{E}_2\) & \(\text{P}_2\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      15 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{10}\) & 4920 \\
-      \hline
-      16 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{12}\) & 4920 \\
-      \hline
-      17 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{20}\) & 4920 \\
-      \hline
-      18 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{22}\) & 4920 \\
-      \hline
-      19 & \(\text{H}_{10}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      20 & \(\text{H}_{11}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      21 & \(\text{H}_{12}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      22 & \(\text{H}_{13}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      23 & \(\text{H}_{20}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      24 & \(\text{H}_{21}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      25 & \(\text{H}_{22}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-    \end{tabular}
-  \end{table}
-  
-\sublevel{Preliminary Tests}
-  Before we started evaluation of our IDS, we performed a naive proof of concept to assess the ``detectability'' of hardware changes. To do so we reduced traces of whole words (about 1600 samples) to 2 dimensions with Primary Component Analysis (PCA) \cite{pearson1901liii}.
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__by_message.png}
-    \caption{PCA dimensionality reduction of whole words}
-    \label{fig:pca_by_message}
-  \end{figure}
-  
-  Figure \ref{fig:pca_by_message} shows the result of the PCA on a representetive subset of our data set. In the figure there are 6 distinctive clusters, each one corresponds to a different message. The PCA naturally separates the words by the value of the message they transmit, since this property is responsible for the bulk of the difference between words.
-  
-  Figures \ref{fig:pca_by_tx_id}, \ref{fig:pca_by_rx_id} and \ref{fig:pca_by_load} zoom in on the leftmost cluster, which contains only words with the message \texttt{0x5A5A5A5A}. We see that in fact, the \texttt{0x5A5A5A5A} cluster is made up of smaller clusters. The words are labeled differently in each figure. In Figure \ref{fig:pca_by_tx_id} words are labeled according to the transmitter that sent them. In Figure \ref{fig:pca_by_rx_id} they are labeled according to the primary receiver that was connected to the line ($P_1$ or $P_2$). Lastely, in Figure \ref{fig:pca_by_load} they are labeled according to to the presence and identifier of an additional transmitter. $E_1$ and $E_2$ are removed from Figure \ref{fig:pca_by_rx_id}, because each one of them has only been recorded with one receiver. The Holt devices as transmitters have been removed from \ref{fig:pca_by_load}, because only $E_1$ and $E_2$ have been recorded with additional receivers.
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_tx_id__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by transmitter ID}
-    \label{fig:pca_by_tx_id}
-  
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_rx_id__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by receiver ID}
-    \label{fig:pca_by_rx_id}
-  
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_load__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by additional receiver ID}
-    \label{fig:pca_by_load}
-  \end{figure}
-  
-  \textcolor{blue}{(In Figure \ref{fig:pca_by_tx_id} most (but not all) groups of words from the same transmitter form a cluster that is visibly distinguishable from the others. In \ref{fig:pca_by_rx_id} we can pass a line that separates words from different receivers. In Figure \ref{fig:pca_by_load} we can't separeate words from different groups.)}
-  
-  The fact that we are able to cluster words by their transmitter or receiver indicate that the information needed to achieve this is present in the trace of the word. On the other hand, failure to do so in the case of an additional receiver does not tell us that it is impossible, only that it is not achieved by PCA to 2 dimensions, though it hints us that an additional receiver introduces more subtle changes to the form of the signal than a hardware switch.
-  
-  Of course, we can't use this naive method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. Second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a rogue system. In a real IDS, we are only allowed to use samples from the guarded bus to train our anomaly detector. Still, the above figures provide positive evidence that transmitter switches and receiver switches change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
-  
-\sublevel{Detection based on a Single Word - Feature Set Comparison} \label{FeatureSetComparison}
-\subsublevel{Methodology}
+\level{Detection based on a Single Word} \label{PerformanceEvaluationSingleWord}
+\sublevel{Methodology} \label{Methodology}
   In order to evaluate the performance of our algorithm, we performed an extensive series of experiments. In each experiment we selected one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we selected a group of other devices as rogue devices. Their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary.
   
   In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. The measurements labeled as anomalies are not present in the training set.
@@ -690,7 +598,7 @@
   
   Note that since the FA/Sec is linear in the EER, we can discuss the graphs as though they display the EER when giving a qualitative analysis.
   
-\subsublevel{Identifying a Rogue Transmitter}
+\sublevel{Identifying a Rogue Transmitter}
   In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the our transmitters as the legitimate device to be guarded. In addition we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
   
   We then test the trained IDS. We simulate a rogue transmitter LRU by using measurements of other transmitters connected to the chosen receiver as anomalies. We remind the reader that during each measurement, only one transmitter is connected to the bus.
@@ -738,7 +646,7 @@
   
   Another thing to observe is that in both Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
   
-\subsublevel{Identifying a Rogue Receiver Switch}
+\sublevel{Identifying a Rogue Receiver Switch}
   In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments: One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a a receiver.
   
   In the testing stage, we simulate an attack by using measurements taken with the same transmitter as in the training stage, but with the other receiver LRU.
@@ -754,7 +662,7 @@
     \label{fig:receiver_results}
   \end{figure}
   
-\subsublevel{Identifying an Addition of a Rogue Receiver}
+\sublevel{Identifying an Addition of a Rogue Receiver}
   In the final series of experiments we simulate an attack, where the adversary connects an additional receiver to the bus. The training stage is the same as the training stage in the previous series of experiments, except that only \(\text{E}_1\) and \(\text{E}_2\) are used as transmitters.
   
   In the testing stage, we use measurements taken where a Holt receiver was connected to the bus in addition to the transmitter and receiver from the training stage.
@@ -772,19 +680,125 @@
     \label{fig:load_results}
   \end{figure}
 
+\level{Modeling the Suspicion Counter} \label{ModelingSuspicionCounter}
+  In this section we analyze the effect of the suspicion counter on overall the false alarm rate, using a Markov-chain approach. Let the probability that a word is detected as anomalous be denoted by $p$, and assume that the events of detecting a word as anomalous are i.i.d. 
+  Then we can describe the value of the counter after word $i$ arrives as a Markov random process. 
+  Figure \ref{fig:suspicion_counter} shows, for example, the Markov process that corresponds to $T_{suspicion} = 3$.
+  
+  Each state in the diagram corresponds to a counter value. For a state representing a counter value of $0 < i < T_{suspicion}$ there is a transition to the right, with probability $p$, indicating that a word was detected as an anomaly (and the counter is increased), and a transition to the left, with probability $1-p$, indicating that a normal word (and the counter is decreased). 
+  The first and last states ($i = 0$ and $i = T_{suspicion}$ respectfully) are unique. The counter cannot be decreased below 0. Therefore, when $i = 0$, instead of a transition left we see a self loop with probability $1 - p$. Finally, the state for $i = T_{suspicion}$ is a final state indicating that an alarm is raised: the probability of staying at $i = T_{suspicion}$ is 1. 
+  
+  \begin{figure}
+  \centering
+  \begin{adjustbox}{width=\columnwidth}
+  \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,thick,
+                      main node/.style={circle,draw,font=\sffamily\Large\bfseries},
+                      skip node/.style={font=\sffamily\Large\bfseries}]
+                      
+    %\node[main node] (0) {0};
+    %\node[main node] (1) [right of=0] {1};
+    %\node[main node] (2) [right of=1] {2};
+    %\node[main node] (3) [right of=2] {3};
+    %\node[main node] (4) [right of=3] {4}
+    %
+    %\path[every node/.style={font=\sffamily\small}]
+    %  (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (1)
+    %  (1) edge [bend left] node [below] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (2)
+    %  (2) edge [bend left] node [below] {$1 - p$} (1)
+    %      edge [bend left] node [above] {$p$} (3)
+    %  (3) edge [bend left] node [below] {$1 - p$} (2)
+    %      edge [bend left] node [above] {$p$} (4)
+    %  (4) edge [out=30,in=330,looseness=10] node [right] {$1$} (4)
+    %;
+    
+    \node[main node] (0) {0};
+    \node[main node] (1) [right of=0] {1};
+    \node[main node] (2) [right of=1] {2};
+    \node[main node] (3) [right of=2] {3};
+    
+    \path[every node/.style={font=\sffamily\small}]
+      (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
+          edge [bend left] node [above] {$p$} (1)
+      (1) edge [bend left] node [below] {$1 - p$} (0)
+          edge [bend left] node [above] {$p$} (2)
+      (2) edge [bend left] node [below] {$1 - p$} (1)
+          edge [bend left] node [above] {$p$} (3)
+      (3) edge [out=30,in=330,looseness=10] node [right] {$1$} (3)
+    ;
+    
+    %\node[main node] (0) {0};
+    %\node[main node] (1) [right of=0] {1};
+    %\node[skip node] (2) [right of=1] {\(\cdots\)};
+    %\node[main node] (3) [right of=2] {\(T_{suspicion} - 1\)};
+    %\node[main node] (4) [right of=3] {\(T_{suspicion}\)};
+    %
+    %\path[every node/.style={font=\sffamily\small}]
+    %  (0) edge [out=210,in=150,looseness=10] node [left] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (1)
+    %  (1) edge [bend left] node [below] {$1 - p$} (0)
+    %      edge [bend left] node [above] {$p$} (2)
+    %  (2) edge [bend left] node [below] {$1 - p$} (1)
+    %      edge [bend left] node [above] {$p$} (3)
+    %  (3) edge [bend left] node [below] {$1 - p$} (2)
+    %      edge [bend left] node [above] {$p$} (4)
+    %  (4) edge [out=30,in=330,looseness=10] node [right] {$1$} (4)
+    %;
+    
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Suspicion counter example for $T_{suspicion} = 3$}
+  \label{fig:suspicion_counter}
+  \end{figure}
+  
+  The transition matrix of such a Markov process is given by:
+  \begin{equation}
+    P = \begin{bmatrix}
+      1 - p & p     & 0      & 0 & \cdots & 0 \\
+      1 - p & 0     & p      & 0 & \cdots & 0 \\
+            &       & \vdots &   &       &   \\
+      0     & \cdots & 0 & 1 - p  & 0 & p     \\
+      0     & \cdots & 0 & 0      & 0 & 1
+    \end{bmatrix}
+  \end{equation}
+  The vector \(x^{(n)}\) represents the distribution of probabilities between counter values after word $n$ was processed. The counter always starts at 0. Therefore:
+  \begin{equation}
+    x^{(0)} = \begin{bmatrix}
+    1 & 0 & 0 & \cdots & 0
+    \end{bmatrix}
+  \end{equation}
+  The distribution of probabilities after $n$ words is given by raising the transition matrix $P$ to the power of $n$:
+  \begin{equation} \label{eq:prob_after_n_words}
+    x^{(n)} = x^{(0)}P^n
+  \end{equation}
+   The probability of the counter reaching $T_{suspicion}$ after up to $n$ words is exactly the probability of reaching the final state $i = T_{suspicion}$, which is given by element $T_{suspicion} + 1$ of $x^{(n)}$.
+   
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh.png}
+    \caption{Probability for a false alarm during a 10 hour flight}
+    \label{fig:CounterTheoreticalFA}
+    
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_time_vs_thresh.png}
+    \caption{Time until the probability of a true detection exceeds 99.999\%}
+    \label{fig:CounterTheoreticalTime}
+  \end{figure}
+
+  Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10 hour flight as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our data set. We can see that for every value of $p$, if $T_{suspicion}$ is high enough, the false alarm rate probability drops to 0. The lower $p$ is, the minimal $T_{suspicion}$ that is required is lower. Interestingly, even for a very high single-word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the probability of a false alarm drops to 0.
+   
+  Figure \ref{fig:CounterTheoreticalTime} show the time it takes for the probability for a positive (anomaly) detection to reach 99.999\%. Here all the transmitted words are assumed to originate from a rogue system, therefore we set $p > 0.5$. A low detection time means that the system is quick at detecting the adversary. The figure shows that the time until detection rises as $T_{suspicion}$ rises. The rise is quicker for low values of $p$. Even so, with a very poor detection probability of $p = 0.6$ and $T_{suspicion} = 100$, (which is much more than the threshold required to bring the false alarm rate to near 0), the time until detection reaches only 2 seconds. So we can see from the Markov model that using a suspicion counter drastically reduces the false alarm rate, while slowing down the detection only mildly.
+   
 \level{Performance of the Complete Method} \label{PerformanceEvaluationCompleteMethod}
-  \textcolor{blue}{We continue to evalueate the performance of the complete method as a function of $T_{suspicion}$. We select the Raw feature set and set $T_{votes} = 100$.}
+
+  The results we attained in Section \ref{PerformanceEvaluationSingleWord} are encouraging: we can successfully fingerprint a transmitter based on a single word. However, the FA/Sec metric of around 5 alarms per second is still too high for a realistic system. To reduce the FA/Sec rate to near-zero, we use the suspicion counter we analyzed in Section~\ref{ModelingSuspicionCounter}, and raise an alarm only when the counter exceeds $T_{suspicion}$. In this section we empirically evaluate the behavior of the complete system as a function of the threshold $T_{suspicion}$.
   
-  The results we attained in \ref{FeatureSetComparison} are encouraging: we can successfully fingerprint a transmitter based on a single word. However, the FA/Sec metric of around 5 alarms per second is still too high for a XXX system. To reduce the FA/Sec rate to near-zero, we analyse multiple words using an anomaly counter, and XXX and alarm only when the counter exceeds $T_{suspicion}$.
+  We examine how the performance can be improved when we increase $T_{suspicion}$, factoring into our detector's decisions information from more than one word.  We do not discuss how to identify an additional receiver, since we could not identify it with sufficient certainty in Section \ref{PerformanceEvaluationSingleWord}.
   
-  We examine how the performance can be improved when we increase $T_{suspicion}$, factoring into our detector's decision data from more than one word.  We do not discuss how to identify an additional receiver, since we could not identify it with sufficient certainty in Section \ref{FeatureSetComparison}.
+  In Section \ref{PerformanceEvaluationSingleWord} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue transmitter. We now continue our evaluation with these two feature sets.
   
-  In Section \ref{FeatureSetComparison} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue transmitter. We now continue our evaluation with these two feature sets.
-  
-  From each configuration, i.e., transmitter-receiver pair, we have a trace of 1968 words that were transmitted sequentially. We run the detection algorithm with a specific value of $T_{suspicion}$
-  For each value of $T_{suspicion}$, we run the 
-  
-  We wish to examine the FAR as a function of the counter threshold. For each transmitter-receiver pair in our data set, we repeat the following process. We train an anomaly detector on words from the chosen pair. We run our algorithm with $T_{voting} = 100$ and a choice of $T_{suspicion}$ on words from the test set of the same transmitter-receiver pair and note whether or not an anomaly was detected. We repeat his test 1000 times, each time starting from a random point in time and going over all the words for the 2 feature sets.  Overall there are 18000 measurements \textcolor{blue}{(9 transmitter * 2 receivers * 1000 for each feature set)}. Figure \ref{fig:counter_far} shows the results.
+  We wish to examine the FAR as a function of the counter threshold. For each transmitter-receiver pair in our data set we repeat the following procedure. First we train an anomaly detector on words recorded with the selected pair. Then we test the detector a 1000 times on words recorded with the same pair. Each time uses the same 1968 words after cyclically shifting them by a random amount in order to start the counter at a different point in time. We compute the FAR by dividing the number of times an anomaly was detected by the total number of measurements. Overall there are such 18000 measurements for each data set (9 transmitter * 2 receivers * 1000 repetitions).
+  We repeat this procedure with different values of $T_{suspicion}$, once for each feature set. We use $T_{voting} = 100$ in all experiments. Experiments in Section \ref{PerformanceEvaluationSingleWord} show that this is a reasonable choice that balances the FAR and the MDR for detection based on a single word. The train-test split is 60\%-40\%. Figure \ref{fig:counter_far} shows the results.
   
   \begin{figure}[t]
     \centering
@@ -793,11 +807,11 @@
     \label{fig:counter_far}
   \end{figure}
   
-  As expected, the false alarm rate decreases as $T_{suspicion}$ increases. For $T_{suspicion}$ greater than 16, there were no false alarms.
+  As predicted by the Markov analysis, the false alarm rate drops dramatically as $T_{suspicion}$ increases. For $T_{suspicion}$ greater than 16, there were no false alarms. The results are the analysis are in agreement. The empirical Figure \ref{fig:counter_far} is similar to the theoretical Figure \ref{fig:CounterTheoreticalFA}. In both the false alarm probability starts at 1, is stable for low values of $T_{suspicion}$, drops quickly and finally decays to 0.
   
-  To observe the trade-off of using an anomaly counter, measuring the MDR is ineffective, since given sufficient time an anomaly will eventually be detected. Instead of measuring the MDR, we measure the time it takes for our detector to raise an alarm. The process is similar to the process of measuring the FAR. Instead of testing the trained detector on words from the same transmitter-receiver pairs, on which it was trained, we test it on words from different pairs, according to the adversary model that is being simulated, as explained in section \ref{FeatureSetComparison}. We run our algorithm with a per-word threshold of $T_{voting} = 100$. The Raw feature set is used for measuring a rogue transmitter detection, and the polynomial feature set is used when detecting a rogue receiver. We count the number of words it takes for the detector to raise an alarm. Overall, for a rogue transmitter there are 14400 measurements and for a rogue receiver there are 8000 measurements for each value of $T_{suspicion}$ \textcolor{blue}{(9 transmitter * 2 receivers * 8 transmitters * 1000, 8 * transmitters * 1000)}.
+  For observing the trade-off of using an anomaly counter, measuring the MDR rate is inefficient, since given sufficient time an anomaly will eventually be detected. Instead of measuring the MDR, we measure the time it takes for our detector to raise an alarm. The procedure is similar to the procedure of measuring the FAR. Instead of testing the trained detector on words recorded with the same transmitter-receiver pair as the one which was used to train it, we test it on words from different pairs, according to the adversary model that is being simulated, as explained in section \ref{Methodology}. The Raw feature set is used for measuring a rogue transmitter detection, and the polynomial feature set is used when detecting a rogue receiver. We count the number of words it takes for the detector to raise an alarm. Overall, for a rogue transmitter there are 144000 measurements (9 * guarded transmitters * 8 rogue transmitters * 2 receivers * 1000 repetitions) and for a rogue receiver there are 8000 measurements (8 transmitters * receivers * 1 guarded receiver * 1 rogue receiver * 1000 repetitions) for each value of $T_{suspicion}$.
   
-  Figure \ref{fig:counter_detection_time_rogue_tx} shows the maximal (worst case) time we measured for detecting a rogue transmitter, over all combinations of guarded and attacking transmitters. Figure \ref{fig:counter_detection_time_rogue_rx} shows the same for detecting a rogue receiver. The blue line indicates the lower bound - the time it takes to transmit $T_{suspicion}$ messages. In our test set the average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth.
+  Figure \ref{fig:counter_detection_time_rogue_tx} shows the maximal (worst case) time we measured for detecting a rogue transmitter over all combinations of guarded and attacking transmitters. Figure \ref{fig:counter_detection_time_rogue_rx} shows the same for detecting a rogue receiver. The blue line indicates a lower bound --- the time it takes to transmit $T_{suspicion}$ messages. In our test set the average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth.
   
   \begin{figure}[t]
     \centering
@@ -810,21 +824,26 @@
     \label{fig:counter_detection_time_rogue_rx}
   \end{figure}
   
-  The figures show that the suspicion meter reduces false alarms at the expense of delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
+  The figures show that the suspicion counter reduces false alarms at the expense of delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
   
-  In both cases, the maximal observed detection time rises faster than theoretical lower bound. For rogue transmitter detection, the maximal time is of the same order of magnitude of as the lower bound, while for the case of rogue receiver detection, the maximal time is an order of magnitude higher. The difference is due to the difference in MD rates for a single word, as seen in section \ref{FeatureSetComparison}.
+  In both cases, the maximal observed detection time rises faster than lower bound. For rogue transmitter detection, the maximal time is of the same order of magnitude of as the lower bound, while for the case of rogue receiver detection, the maximal time is an order of magnitude higher. The difference is due to the difference in misdetection rates for a single word, measured in section \ref{PerformanceEvaluationSingleWord}. The difference between the slopes is predicted by the Markov analysis. Figure \ref{fig:CounterTheoreticalTime} shows that the higher the misdetection rate of a single word, the detection time rises more rapidly with the increment of $T_{suspicion}$.
   
 \level{Conclusions} \label{Conclusions}
   We presented a first hardware fingerprinting method for the ARINC 429 bus. The method can be used to retrofit source authentication into existing avionic systems with low effort.
   
-  We showed that our method is especially effective for identifying a technician attack, in which adversary replaces the guarded transmitter LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
+  We showed that our method is especially effective for identifying a technician attack, in which adversary replaces a legitimate LRU with a rogue one. We demonstrated that even transmitter LRUs of the same make and model are different enough from one another for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
   
   We showed that the method can also detect a switched receiver. We found that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance among the feature sets we examined, when applied to this task.
+
+  We showed that by augmenting the per-word anomaly detection by a ``suspicion counter'', we can drastically reduce the false-alarm rate. Using both a Markov-chain analysis and an extensive empirical evaluation, we demonstrated that our full intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 200ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
   Further work needs to be done in order to evaluate the sensitivity of the hardware fingerprints to external changes such as fluctuations in temperature or supply voltage levels, and to evaluate its stability over time.
   
   ARINC 429 lacks essential security features. It is a safety liability that is present today in almost every civil aircraft.
   Our method could help close of the gap between ARINC 429 and modern security requirements. Thus we argue that it is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
+  
+  
+  
   
 \bibliographystyle{IEEEtranS}
 \bibliography{biblio} 
