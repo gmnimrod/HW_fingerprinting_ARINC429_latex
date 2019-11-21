@@ -201,7 +201,7 @@
   We compare different feature sets under different the adversarial models. Somewhat surprisingly, we find that using the raw samples, without extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
   
   In order to drive the false-alarms-per-second rate to zero, we suggest to augment the per-word anomaly detection by a ``suspicion counter'' that increases with each word flagged as an anomaly, and decreases with every normal word. We first analyze the suspicion counter using a Markov-chain model, and then evaluate the full system's performance using the empirical data. 
-   We demonstrate that our intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 200ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
+   We demonstrate that our intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
   
   \textbf{Organization}: Section \ref{Preliminaries} describes the ARINC 429 protocol and the adversary model. 
@@ -387,7 +387,7 @@
   
   Figure \ref{fig:pca_by_rx_id} shows the same words, labeled according to the primary receiver that was connected to the line ($P_1$ or $P_2$). The transmitters $E_1$ and $E_2$ are removed from the figure because each was only recorded with one receiver. We see that the two labels are visually distinguishable, as demonstrated by the dashed curved line. We conclude that receivers, as well as transmitters, can be fingerprinted.
   
-  Lastly, in Figure \ref{fig:pca_by_load} the words are labeled according to the presence and identity of an \textit{additional receiver} on the bus. Only words from transmitters $E_1$ and $E_2$ are displayed, because the Holt transmitters were not recorded with additional receivers (consult Table \ref{tab:RecordingsSummery}. The figure shows that identifying an additional receiver is much more difficult than identifying a transmitter or a receiver, since we cannot separate words from different labels by a simple line or convex shape. This fact does not mean that it is impossible to detect an additional transmitter, only that it requires more information than that which is present in the first two primary components alone.
+  Lastly, in Figure \ref{fig:pca_by_load} the words are labeled according to the presence and identity of an \textit{additional receiver} on the bus. Only words from transmitters $E_1$ and $E_2$ are displayed, because the Holt transmitters were not recorded with additional receivers (recall Table \ref{tab:RecordingsSummery}). The figure shows that identifying an additional receiver is much more difficult than identifying a transmitter or a receiver, since we cannot separate words from different labels by a simple line or convex shape. This fact does not mean that it is impossible to detect an additional transmitter, only that it requires more information than that which is present in the first two primary components alone.
   
   Of course, we can't use this basic PCA method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. And second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a rogue system---in a real IDS, we can only use samples from the guarded bus to train our anomaly detector. Still, the above figures provides positive evidence that transmitter switches and receiver switches change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
 
@@ -616,7 +616,8 @@
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_transmitter.png}
-    \caption{Comparing the feature sets for identifying a rogue transmitter. \(N = 1\)}
+    \caption{Comparing the feature sets for identifying a rogue transmitter.} 
+    % \(N = 1\)}
     \label{fig:rogue_transmitter_results}
   \end{figure}
   
@@ -658,7 +659,8 @@
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_receiver_switch.png}
-    \caption{Comparing the feature sets for identifying a rogue receiver switch. \(N = 1\)}
+    \caption{Comparing the feature sets for identifying a rogue receiver switch.}
+    %\(N = 1\)}
     \label{fig:receiver_results}
   \end{figure}
   
@@ -676,7 +678,8 @@
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_receiver_add.png}
-    \caption{Comparing the feature sets for identifying a rogue receiver addition. \(N = 1\)}
+    \caption{Comparing the feature sets for identifying a rogue receiver addition.}
+    % \(N = 1\)}
     \label{fig:load_results}
   \end{figure}
 
@@ -685,7 +688,7 @@
   Then we can describe the value of the counter after word $i$ arrives as a Markov random process. 
   Figure \ref{fig:suspicion_counter} shows, for example, the Markov process that corresponds to $T_{suspicion} = 3$.
   
-  Each state in the diagram corresponds to a counter value. For a state representing a counter value of $0 < i < T_{suspicion}$ there is a transition to the right, with probability $p$, indicating that a word was detected as an anomaly (and the counter is increased), and a transition to the left, with probability $1-p$, indicating that a normal word (and the counter is decreased). 
+  Each state in the diagram corresponds to a counter value. For a state representing a counter value of $0 < i < T_{suspicion}$ there is a transition to the right, with probability $p$, indicating that a word was detected as an anomaly (and the counter is increased), and a transition to the left, with probability $1-p$, indicating a normal word (and the counter is decreased). 
   The first and last states ($i = 0$ and $i = T_{suspicion}$ respectfully) are unique. The counter cannot be decreased below 0. Therefore, when $i = 0$, instead of a transition left we see a self loop with probability $1 - p$. Finally, the state for $i = T_{suspicion}$ is a final state indicating that an alarm is raised: the probability of staying at $i = T_{suspicion}$ is 1. 
   
   \begin{figure}
@@ -785,7 +788,7 @@
     \label{fig:CounterTheoreticalTime}
   \end{figure}
 
-  Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10 hour flight as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our data set. We can see that for every value of $p$, if $T_{suspicion}$ is high enough, the false alarm rate probability drops to 0. The lower $p$ is, the minimal $T_{suspicion}$ that is required is lower. Interestingly, even for a very high single-word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the probability of a false alarm drops to 0.
+  Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10 hour flight as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate of 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our data set. We can see that for every value of $p$, if $T_{suspicion}$ is high enough, the false alarm rate probability drops to 0. The lower $p$ is, the minimal $T_{suspicion}$ that is required is lower. Interestingly, even for a very high single-word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the probability of a false alarm drops to 0.
    
   Figure \ref{fig:CounterTheoreticalTime} show the time it takes for the probability for a positive (anomaly) detection to reach 99.999\%. Here all the transmitted words are assumed to originate from a rogue system, therefore we set $p > 0.5$. A low detection time means that the system is quick at detecting the adversary. The figure shows that the time until detection rises as $T_{suspicion}$ rises. The rise is quicker for low values of $p$. Even so, with a very poor detection probability of $p = 0.6$ and $T_{suspicion} = 100$, (which is much more than the threshold required to bring the false alarm rate to near 0), the time until detection reaches only 2 seconds. So we can see from the Markov model that using a suspicion counter drastically reduces the false alarm rate, while slowing down the detection only mildly.
    
@@ -793,7 +796,8 @@
 
   The results we attained in Section \ref{PerformanceEvaluationSingleWord} are encouraging: we can successfully fingerprint a transmitter based on a single word. However, the FA/Sec metric of around 5 alarms per second is still too high for a realistic system. To reduce the FA/Sec rate to near-zero, we use the suspicion counter we analyzed in Section~\ref{ModelingSuspicionCounter}, and raise an alarm only when the counter exceeds $T_{suspicion}$. In this section we empirically evaluate the behavior of the complete system as a function of the threshold $T_{suspicion}$.
   
-  We examine how the performance can be improved when we increase $T_{suspicion}$, factoring into our detector's decisions information from more than one word.  We do not discuss how to identify an additional receiver, since we could not identify it with sufficient certainty in Section \ref{PerformanceEvaluationSingleWord}.
+% [AW] repetitive      We examine how the performance can be improved when we increase $T_{suspicion}$, factoring into our detector's decisions information from more than one word.  
+We do not discuss how to identify an additional receiver, since we could not identify it with sufficient certainty in Section \ref{PerformanceEvaluationSingleWord}.
   
   In Section \ref{PerformanceEvaluationSingleWord} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue transmitter. We now continue our evaluation with these two feature sets.
   
@@ -807,9 +811,9 @@
     \label{fig:counter_far}
   \end{figure}
   
-  As predicted by the Markov analysis, the false alarm rate drops dramatically as $T_{suspicion}$ increases. For $T_{suspicion}$ greater than 16, there were no false alarms. The results and the analysis are in agreement. The empirical Figure \ref{fig:counter_far} is similar to the theoretical Figure \ref{fig:CounterTheoreticalFA}. In both the false alarm probability starts at 1, is stable for low values of $T_{suspicion}$, drops quickly and finally decays to 0.
+  As predicted by the Markov analysis, the false alarm rate drops dramatically as $T_{suspicion}$ increases. For $T_{suspicion}$ greater than 16, there were no false alarms: the empirical results and the Markov analysis are in agreement, and the empirical Figure \ref{fig:counter_far} is similar to the theoretical Figure \ref{fig:CounterTheoreticalFA}. In both the false alarm probability starts at 1, is stable for low values of $T_{suspicion}$, drops quickly and finally decays to 0.
   
-  For observing the trade-off of using an anomaly counter, measuring the MDR rate is inefficient, since given sufficient time an anomaly will eventually be detected. Instead of measuring the MDR, we measure the time it takes for our detector to raise an alarm. The procedure is similar to the procedure of measuring the FAR. Instead of testing the trained detector on words recorded with the same transmitter-receiver pair as the one on which it was trained, we test it on words from other pairs, according to the adversary model that is being simulated, as explained in section \ref{Methodology}. The Raw feature set is used for measuring a rogue transmitter detection, and the polynomial feature set is used when detecting a rogue receiver. We count the number of words it takes for the detector to raise an alarm. Overall, for a rogue transmitter there are 144000 measurements (9 guarded transmitters $\times$ 8 rogue transmitters $\times$ 2 receivers $\times$ 1000 repetitions) and for a rogue receiver there are 8000 measurements (8 transmitters $\times$ 1 guarded receiver $\times$ 1 rogue receiver $\times$ 1000 repetitions) for each value of $T_{suspicion}$.
+  For observing the trade-off of using an anomaly counter, measuring the MDR rate is inefficient, since given sufficient time an anomaly will eventually be detected. Instead of measuring the MDR, we measure the \emph{time} it takes for our detector to raise an alarm. The procedure is similar to the procedure of measuring the FAR. Instead of testing the trained detector on words recorded with the same transmitter-receiver pair as the one on which it was trained, we test it on words from other pairs, according to the adversary model that is being simulated, as explained in section \ref{Methodology}. The Raw feature set is used for measuring a rogue transmitter detection, and the polynomial feature set is used when detecting a rogue receiver. We count the number of words it takes for the detector to raise an alarm. Overall, for a rogue transmitter there are 144000 measurements (9 guarded transmitters $\times$ 8 rogue transmitters $\times$ 2 receivers $\times$ 1000 repetitions) and for a rogue receiver there are 8000 measurements (8 transmitters $\times$ 1 guarded receiver $\times$ 1 rogue receiver $\times$ 1000 repetitions) for each value of $T_{suspicion}$.
   
   Figure \ref{fig:counter_detection_time_rogue_tx} shows the maximal (worst case) time we measured for detecting a rogue transmitter over all combinations of guarded and attacking transmitters. Figure \ref{fig:counter_detection_time_rogue_rx} shows the same for detecting a rogue receiver. The blue line indicates a lower bound---the time it takes to transmit $T_{suspicion}$ messages. In our test set the average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth.
   
@@ -824,7 +828,7 @@
     \label{fig:counter_detection_time_rogue_rx}
   \end{figure}
   
-  The figures show that the suspicion counter reduces false alarms at the expense of delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
+  The figures show that the suspicion counter reduces false alarms at the expense of only mildly delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
   
   In both cases, the maximal observed detection time rises faster than lower bound. For rogue transmitter detection, the maximal time is of the same order of magnitude of as the lower bound, while for the case of rogue receiver detection, the maximal time is an order of magnitude higher. The gap is explained by the difference in misdetection rates for single words, measured in section \ref{PerformanceEvaluationSingleWord}. The difference between the slopes is predicted by the Markov analysis. Figure \ref{fig:CounterTheoreticalTime} shows that as the misdetection rate of a single word increases, so does the rate at which the detection time rises.
   
@@ -835,7 +839,7 @@
   
   We showed that the method can also detect a switched receiver. We found that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance among the feature sets we examined, when applied to this task.
 
-  We showed that by augmenting the per-word anomaly detection by a ``suspicion counter'', we can drastically reduce the false-alarm rate. Using both a Markov-chain analysis and an extensive empirical evaluation, we demonstrated that our full intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 200ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
+  We showed that by augmenting the per-word anomaly detection by a ``suspicion counter'', we can drastically reduce the false-alarm rate. Using both a Markov-chain analysis and an extensive empirical evaluation, we demonstrated that our full intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
   Further work needs to be done in order to evaluate the sensitivity of the hardware fingerprints to external changes such as fluctuations in temperature or supply voltage levels, and to evaluate its stability over time.
   
