@@ -148,7 +148,7 @@
   
   Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. Security on the other hand, as we understand it today, was not a primary concern. At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as widespread as it is today. ARINC 429 was designed without any security features, such as encryption or source authentication, that are perceived today as essential to secure communication. In the years that passed the importance of proper cybersecurity was demonstrated in numerous fields, from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote}. However, since 1980 there were no major revisions of the ARINC 429 standard \cite{18937420070101}.
   
-  AFDX is the successor to ARINC 429. It is ethernet based, so IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fall-back network for the AFDX network, e.g. in the Airbus A380.''
+  AFDX is the successor to ARINC 429. It is Ethernet based, so IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fall-back network for the AFDX network, e.g. in the Airbus A380.''
   
   In particular, ARINC 429 has no mechanism for source authentication, so once an adversary has gained physical access to bus, any data they transmit will be accepted.
    
@@ -208,7 +208,7 @@
   Section \ref{TheDataSet} presents the data set we collected
   and Section \ref{PreliminaryTests} demonstrates a proof of concept.
   Section \ref{Approach} outlines our hardware fingerprinting approach. Section \ref{SignalSegmentation} describes our signal segmentation process and Section \ref{FeatureSets} covers the various feature sets we considered. 
-  Section \ref{PerformanceEvaluationSingleWord} describes the empirical evaluation of our detection method when it is based on single words. Section \ref{ModelingSuspicionCounter} presents a Markov-chain analysis of the suspicion counter, and Section \ref{PerformanceEvaluationCompleteMethod} describes the emirical performance evaluation of the complete method. We conclude with Section \ref{Conclusions}.
+  Section \ref{PerformanceEvaluationSingleWord} describes the empirical evaluation of our detection method when it is based on single words. Section \ref{ModelingSuspicionCounter} presents a Markov-chain analysis of the suspicion counter, and Section \ref{PerformanceEvaluationCompleteMethod} describes the empirical performance evaluation of the complete method. We conclude with Section \ref{Conclusions}.
   
 \level{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
@@ -671,7 +671,7 @@
   
   The results are shown in Figure \ref{fig:load_results}. Note that there are only two data points for each feature set (one for \(\text{E}_1\) and one for \(\text{E}_2\)). The numbers over the box plot represent the mean instead of the median.
   
-  In this series of experiments all feature sets perform poorly. By comparing Figures \ref{fig:load_results} and \ref{fig:receiver_results} we learn that adding a receiver affects the electrical characteristics significantly less than replacing a receiver. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) also means altering a long segment of the transmission line, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way: The electrical characteristics are not especially sensitive to the receiver, but rather to the transmission line as a whole.
+  In this series of experiments all feature sets perform poorly. By comparing Figures \ref{fig:receiver_results} and \ref{fig:load_results} we learn that adding a receiver affects the electrical characteristics significantly less than replacing a receiver. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) also means altering a long segment of the transmission line, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way: The electrical characteristics are not especially sensitive to the receiver, but rather to the transmission line as a whole.
   
   \begin{figure}[t]
     \centering
@@ -841,9 +841,6 @@
   
   ARINC 429 lacks essential security features. It is a safety liability that is present today in almost every civil aircraft.
   Our method could help close of the gap between ARINC 429 and modern security requirements. Thus we argue that it is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
-  
-  
-  
   
 \bibliographystyle{IEEEtranS}
 \bibliography{biblio} 
