@@ -1,5 +1,5 @@
 \newif\ifpaper
-\papertrue
+% \papertrue
 
 \ifpaper
 \documentclass[compsoc,conference,a4paper,10pt,times]{IEEEtran}
@@ -44,15 +44,17 @@
 \togglefalse{paper}
 \fi
 
-\iftoggle{paper}{
-  % if paper
+\iftoggle{paper}{  % if paper
   \pagestyle{plain}
-} {
-  % if thesis report
-  % times font
+} {  % if thesis report
+  % output encoding
   \usepackage[T1]{fontenc}
+  % input encoding
   \usepackage[utf8x]{inputenc}
-  \usepackage{mathptmx}  % this sets the font
+  % sets the times font for the whole document
+  \usepackage{mathptmx}
+  % times doesn't have bold letters for Hebrew. for Hebrew we'll use another font.
+  \newenvironment{davidfont}{\fontfamily{david}\selectfont}{\par}
   
   % paper size and margins size
   \usepackage[a4paper, inner=3cm, outer=2cm, top=2cm, bottom=2cm]{geometry}
@@ -60,22 +62,27 @@
   % for hebrew abstract
   \usepackage[main=english,hebrew]{babel}
   
-  % we'll use it to place hebrew abstract on an even page, so that it faces the correct way
+  % use for placing hebrew sections on an even page, so that they face the correct way
   \usepackage{ifoddpage}
+  
+  % include lists and bibliography in table of contents
+  \usepackage[nottoc,numbib]{tocbibind}
   
   % header and footer
   % Print chapter in header on outer side (far from binding).
   % Print page number in footer on outer side (far from binding).
   \usepackage{fancyhdr}
-  \pagestyle{fancy}
-  \renewcommand{\chaptermark}[1]{%
-    \markboth{\MakeUppercase{%
-    \chaptername}\ \thechapter.%
-    \ #1}{}}
-  % \renewcommand{\sectionmark}[1]{}
-  \fancyhead[LE,RO]{\textbf{\textsl{\thepage}}}  % rightmark uses sectionmark
-  \fancyhead[LO,RE]{\textsl{\leftmark}}  % leftmark uses chaptermark
-  \fancyfoot{}
+  \newcommand{\setfancyheaderfooter}{%
+    \pagestyle{fancy}
+    \renewcommand{\chaptermark}[1]{%
+      \markboth{\MakeUppercase{%
+      \chaptername}\ \thechapter.%
+      \ ##1}{}}
+    % \renewcommand{\sectionmark}[1]{}
+    \fancyhead[LE,RO]{\textbf{\textsl{\thepage}}}  % rightmark uses sectionmark
+    \fancyhead[LO,RE]{\textsl{\leftmark}}  % leftmark uses chaptermark
+    \fancyfoot{}
+  }
 }
 
 % different hierarchy commands for different formats
@@ -130,11 +137,11 @@
   \maketitle
   \input{abstract_english.tex}
 }{
-  \frontmatter  % use roman numerals for page numbers
-  \input{title_page_hebrew_outer.tex}
-  \input{title_page_hebrew_inner.tex}
+  \pagenumbering{gobble}  %  suppress page numbers
   \input{title_page_english_outer.tex}
   \input{title_page_english_inner.tex}
+  \frontmatter  % use roman numerals for page numbers
+  \setfancyheaderfooter
   \input{abstract_english.tex}
   \tableofcontents
   \listoffigures
@@ -853,8 +860,14 @@ We do not discuss how to identify an additional receiver, since we could not ide
 \iftoggle{paper}{
   % nothing
 }{
+  \pagenumbering{gobble}  %  suppress page numbers
+  \pagestyle{empty}
   \newchapterevenpage
   \input{abstract_hebrew.tex}
+  \newchapterevenpage
+  \input{title_page_hebrew_inner.tex}
+  \newchapterevenpage
+  \input{title_page_hebrew_outer.tex}
 }
 
 \end{document}
