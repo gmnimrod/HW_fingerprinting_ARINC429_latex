@@ -155,7 +155,7 @@
   
   Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. Security on the other hand, as we understand it today, was not a primary concern. At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as widespread as it is today. ARINC 429 was designed without any security features, such as encryption or source authentication, that are perceived today as essential to secure communication. In the years that passed the importance of proper cybersecurity was demonstrated in numerous fields, from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote}. However, since 1980 there were no major revisions of the ARINC 429 standard \cite{18937420070101}.
   
-  AFDX is the successor to ARINC 429. It is Ethernet based, so IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fall-back network for the AFDX network, e.g. in the Airbus A380.''
+  AFDX is the successor to ARINC 429. It is Ethernet based, so IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fallback network for the AFDX network, e.g. in the Airbus A380.''
   
   In particular, ARINC 429 has no mechanism for source authentication, so once an adversary has gained physical access to bus, any data they transmit will be accepted.
    
@@ -178,7 +178,7 @@
   
   One domain in particular is of special interest to us: controller area network (CAN bus) \cite{bosch1991canbus}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN. Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
   
-  In recent years a number of successful cyber attacks were demonstrated on cars \cite{miller2015remote}, motivating researchers to search for new ways to hinder attacks.
+  In recent years a number of successful cyber-attacks were demonstrated on cars \cite{miller2015remote}, motivating researchers to search for new ways to hinder attacks.
   
   % like ARINC 429, straightforward authentication tools like HMAC are an unlikely solution \textcolor{gray}{(elaborate?)}. 
   
@@ -212,7 +212,7 @@
   
   
   \textbf{Organization}: Section \ref{Preliminaries} describes the ARINC 429 protocol and the adversary model. 
-  Section \ref{TheDataSet} presents the data set we collected
+  Section \ref{TheDataSet} presents the data set we collected,
   and Section \ref{PreliminaryTests} demonstrates a proof of concept.
   Section \ref{Approach} outlines our hardware fingerprinting approach. Section \ref{SignalSegmentation} describes our signal segmentation process and Section \ref{FeatureSets} covers the various feature sets we considered. 
   Section \ref{PerformanceEvaluationSingleWord} describes the empirical evaluation of our detection method when it is based on single words. Section \ref{ModelingSuspicionCounter} presents a Markov-chain analysis of the suspicion counter, and Section \ref{PerformanceEvaluationCompleteMethod} describes the empirical performance evaluation of the complete method. We conclude with Section \ref{Conclusions}.
@@ -258,7 +258,7 @@
   In this attack type of attack the adversary replaces a legitimate receiver LRU by a rogue one, or adds a rogue receiver LRU without detaching another LRU. By doing this the adversary gains access to the transmitted data, which might be otherwise inaccessible, and may use this data to cause harm through another attack channel.
 
 \subsublevel{Adding a Transmitter or Converting a Receiver to a Transmitter}
-  An attack wherein the adversary adds another transmitter LRU to the bus, without detaching the legitimate transmitter, is actually not possible to perform on the ARINC bus. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus irreparably violates the electrical properties of the system. Therefore an adversary cannot simply add a transmitter (built from off-the-shelf components) to the bus. 
+  An attack wherein the adversary adds another transmitter LRU to the bus, without detaching the legitimate transmitter, is actually not possible to perform on the ARINC bus. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus irreparably violates the electrical properties of the system. Therefore, an adversary cannot simply add a transmitter (built from off-the-shelf components) to the bus. 
   The adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitter during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
 
   Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by hijacking its software, since the LRU's wiring does not permit it. 
@@ -388,7 +388,7 @@
 \level{Preliminary Tests} \label{PreliminaryTests}
   Before we started evaluating our IDS, we performed a basic proof of concept investigation to assess the ``detectability'' of hardware changes. To do so we reduced raw traces of whole words (about 1600 samples) to 2 dimensions with Primary Component Analysis (PCA) \cite{pearson1901liii}.
  
-  Figure \ref{fig:pca_by_message} shows the result of the PCA on a representative subset of our data set. In the figure there are 6 distinctive clusters, each correspond in to the data of a different message. The PCA naturally separates the words by the value of the message they transmit, since this property is responsible for the bulk of the difference between words.
+  Figure \ref{fig:pca_by_message} shows the result of the PCA on a representative subset of our data set. In the figure there are 6 distinctive clusters, each one corresponds to words with a different message. The PCA naturally separates the words by the value of the message they transmit, since this property is responsible for the bulk of the difference between words.
   
   In Figure \ref{fig:pca_by_tx_id} we zoom in on the leftmost cluster, which contains only words with the message \texttt{0x5A5A5A5A}. We see that in fact, the \texttt{0x5A5A5A5A} cluster is made up of smaller clusters. The words are labeled according to the transmitter that sent them. The figure shows that most (but not all) groups of words from the same transmitter form a cluster that is visibly distinguishable from the others, as demonstrated by the dashed ellipses. This indicates that the information needed to distinguish between different transmitters is present in the sampled words.
   
@@ -396,13 +396,13 @@
   
   Lastly, in Figure \ref{fig:pca_by_load} the words are labeled according to the presence and identity of an \textit{additional receiver} on the bus. Only words from transmitters $E_1$ and $E_2$ are displayed, because the Holt transmitters were not recorded with additional receivers (recall Table \ref{tab:RecordingsSummery}). The figure shows that identifying an additional receiver is much more difficult than identifying a transmitter or a receiver, since we cannot separate words from different labels by a simple line or convex shape. This fact does not mean that it is impossible to detect an additional transmitter, only that it requires more information than that which is present in the first two primary components alone.
   
-  Of course, we can't use this basic PCA method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. And second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a rogue system---in a real IDS, we can only use samples from the guarded bus to train our anomaly detector. Still, the above figures provides positive evidence that transmitter switches and receiver switches change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
+  Of course, we can't use this basic PCA method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. And second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a rogue system---in a real IDS, we can only use samples from the guarded bus to train our anomaly detector. Still, the above figures provide positive evidence that transmitter switches and receiver switches change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
 
 \level{The Hardware Fingerprinting Approach} \label{Approach}
   The fingerprinting IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
   
 \sublevel{Advantage Over Content Based IDSs}
-  An intrusion detection system which draws its information exclusively from the digital content of the transmitted messages will be unable to detect the rogue transmitter LRU during the latter's dormant phases, or to detect a rogue receiver LRU. Only during an active phase of the attack of a rogue transmitter LRU is the transmitted data distinguishable from that of a legitimate transmission. By utilizing information from the analog domain, we are able to detect hardware changes independently from the transmitted data.  Usually, before takeoff, the aircraft systems are checked for basic integrity. During this pre-flight operations the changes to the bus can be detected, even if the transmitter LRU is sending normal data.
+  An intrusion detection system which draws its information exclusively from the digital content of the transmitted messages will be unable to detect the rogue transmitter LRU during the latter's dormant phases, or to detect a rogue receiver LRU. Only during an active phase of the attack of a rogue transmitter LRU is the transmitted data distinguishable from that of a legitimate transmission. By utilizing information from the analog domain, we are able to detect hardware changes independently from the transmitted data.  Usually, before takeoff, the aircraft systems are checked for basic integrity. During these pre-flight operations the changes to the bus can be detected, even if the transmitter LRU is sending normal data.
   
 \sublevel{IDS Overview} \label{Overview}
   We will next describe our proposed method of anomaly detection. We divide the algorithm into several stages. This section provides an overview of these steps. In the subsequent sections selected stages are explained in greater detail as needed.
@@ -423,13 +423,13 @@
   \end{enumerate}
   
 \sublevel{Anomaly Detection per Segment}
-  Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in Section \ref{SignalSegmentation}. A segment's characteristics depend on its type. Therefore we opted to train a different anomaly detector for each type of segment.
+  Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in Section \ref{SignalSegmentation}. A segment's characteristics depend on its type. Therefore, we opted to train a different anomaly detector for each type of segment.
   
-  Anomaly detection, sometimes called novelty detection, is a well established. There are numerous outlier and anomaly detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
+  Anomaly detection, sometimes called novelty detection, is a well-established. There are numerous outlier and anomaly detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
   
-  For the anomaly detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better then other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} Python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this \iftoggle{paper} {paper} {work}.
+  For the anomaly detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better than other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} Python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this \iftoggle{paper} {paper} {work}.
   
-  LOF is a density based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (feature vector), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average distance of the point from its neighbors.
+  LOF is a density-based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (feature vector), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average distance of the point from its neighbors.
   
   There are several hyper-parameters for the LOF algorithm. In all cases we used the default parameters provided by the implementation. For the number of neighbors examined when calculating the LOF the default is 20. We used the Euclidean metric for the distance measure. The threshold on the local outlier factor that defines an anomaly is automatically set so that 10\% of samples in the \textit{training set} are outliers.
   
@@ -446,7 +446,7 @@
 \level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
-  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels}.
+  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and on the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all, we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels}.
   
   Thus, we split every 32-bit word into 127 segments. Note that there are only 127 segments, not 128, because the last bit is followed by a long ``NULL'' that lasts until the next word and has a unique shape. We do not associate this segment with any word.
   
@@ -544,7 +544,7 @@
 {\bf Polynomial Feature Set.}
   The features in this set are calculated by performing a least squares polynomial fit and taking each coefficient as a separate feature, plus the residual as an additional feature.
   
-  In order to avoid overfitting we fit each type of segment with a polynomial function of an appropriate degree. For the four transitions (``Up from LO'', ``Up from NULL'', ``Down from HI'', ``Down from NULL'') we use a degree of 2. For ``NULL, HI to HI'' and ``NULL, LO to LO'' we use a degree of 6, on account of these segments being even functions. For the remaining segments we use a degree of 7 for similar reasons. Note that the number of features is always one more than the degree due to the residual.
+  In order to avoid overfitting, we fit each type of segment with a polynomial function of an appropriate degree. For the four transitions (``Up from LO'', ``Up from NULL'', ``Down from HI'', ``Down from NULL'') we use a degree of 2. For ``NULL, HI to HI'' and ``NULL, LO to LO'' we use a degree of 6, on account of these segments being even functions. For the remaining segments we use a degree of 7 for similar reasons. Note that the number of features is always one more than the degree due to the residual.
   
 {\bf Hand-Crafted Feature Set.}
   In this feature set there are different features for each segment type.
@@ -597,16 +597,16 @@
   
   In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. The measurements labeled as anomalies are not present in the training set.
   
-  For the purpose of comparing the different feature sets, we set $T_{suspicion} = 1$. We then run our algorithm and calculate the false alarm and misdetection rates (FAR \& MDR respectively) as functions of $T_{voting}$. Next we find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
+  For the purpose of comparing the different feature sets, we set $T_{suspicion} = 1$. We then run our algorithm and calculate the false alarm and misdetection rates (FAR \& MDR respectively) as functions of $T_{voting}$. Next, we find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
   
-  In our graphs we convert the EER to ``false alarms per second'' (FA/Sec) under normal operation (system unaltered by an adversary). This gives a more concrete meaning to the numbers. The FA/Sec is calculated by multiplying the EER by the message rate, and is the inverse of mean time between failures. Note that each word lasts 36 bit times, because the protocol mandates a minimum inter-word gap of at least 4 bit times. Thus the FA/Sec metric is defined as:
+  In our graphs we convert the EER to ``false alarms per second'' (FA/Sec) under normal operation (system unaltered by an adversary). This gives a more concrete meaning to the numbers. The FA/Sec is calculated by multiplying the EER by the message rate, and is the inverse of mean time between failures. Note that each word occupies 36 bits, because the protocol mandates a minimum inter-word gap of at least 4 bit times. Thus the FA/Sec metric is defined as:
   
   \[FA/Sec = \frac{1}{MTBF} = EER \cdot \frac{100 \sfrac{Kbits}{sec}}{36bits}\]
   
   Note that since the FA/Sec is linear in the EER, we can discuss the graphs as though they display the EER when giving a qualitative analysis.
   
 \sublevel{Identifying a Rogue Transmitter}
-  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the our transmitters as the legitimate device to be guarded. In addition we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
+  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the our transmitters as the legitimate device to be guarded. In addition, we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
   
   We then test the trained IDS. We simulate a rogue transmitter LRU by using measurements of other transmitters connected to the chosen receiver as anomalies. We remind the reader that during each measurement, only one transmitter is connected to the bus.
   
@@ -655,7 +655,7 @@
   Another thing to observe is that in both Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
   
 \sublevel{Identifying a Rogue Receiver Switch}
-  In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments: One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a a receiver.
+  In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments: One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a receiver.
   
   In the testing stage, we simulate an attack by using measurements taken with the same transmitter as in the training stage, but with the other receiver LRU.
   
@@ -696,7 +696,7 @@
   Figure \ref{fig:suspicion_counter} shows, for example, the Markov process that corresponds to $T_{suspicion} = 3$.
   
   Each state in the diagram corresponds to a counter value. For a state representing a counter value of $0 < i < T_{suspicion}$ there is a transition to the right, with probability $p$, indicating that a word was detected as an anomaly (and the counter is increased), and a transition to the left, with probability $1-p$, indicating a normal word (and the counter is decreased). 
-  The first and last states ($i = 0$ and $i = T_{suspicion}$ respectfully) are unique. The counter cannot be decreased below 0. Therefore, when $i = 0$, instead of a transition left we see a self loop with probability $1 - p$. Finally, the state for $i = T_{suspicion}$ is a final state indicating that an alarm is raised: the probability of staying at $i = T_{suspicion}$ is 1. 
+  The first and last states ($i = 0$ and $i = T_{suspicion}$ respectfully) are unique. The counter cannot be decreased below 0. Therefore, when $i = 0$, instead of a transition left we see a self-loop with probability $1 - p$. Finally, the state for $i = T_{suspicion}$ is a final state indicating that an alarm is raised: the probability of staying at $i = T_{suspicion}$ is 1. 
   
   \begin{figure}
   \centering
@@ -787,7 +787,7 @@
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh.png}
-    \caption{Probability for a false alarm during a 10 hour flight}
+    \caption{Probability for a false alarm during a 10-hour flight}
     \label{fig:CounterTheoreticalFA}
     
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_time_vs_thresh.png}
@@ -795,9 +795,9 @@
     \label{fig:CounterTheoreticalTime}
   \end{figure}
 
-  Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10 hour flight as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate of 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our data set. We can see that for every value of $p$, if $T_{suspicion}$ is high enough, the false alarm rate probability drops to 0. The lower $p$ is, the minimal $T_{suspicion}$ that is required is lower. Interestingly, even for a very high single-word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the probability of a false alarm drops to 0.
+  Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10-hour flight as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate of 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our data set. We can see that for every value of $p$, if $T_{suspicion}$ is high enough, the false alarm rate probability drops to 0. The lower $p$ is, the minimal $T_{suspicion}$ that is required is lower. Interestingly, even for a very high single-word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the probability of a false alarm drops to 0.
    
-  Figure \ref{fig:CounterTheoreticalTime} show the time it takes for the probability for a positive (anomaly) detection to reach 99.999\%. Here all the transmitted words are assumed to originate from a rogue system, therefore we set $p > 0.5$. A low detection time means that the system is quick at detecting the adversary. The figure shows that the time until detection rises as $T_{suspicion}$ rises. The rise is quicker for low values of $p$. Even so, with a very poor detection probability of $p = 0.6$ and $T_{suspicion} = 100$, (which is much more than the threshold required to bring the false alarm rate to near 0), the time until detection reaches only 2 seconds. So we can see from the Markov model that using a suspicion counter drastically reduces the false alarm rate, while slowing down the detection only mildly.
+  Figure \ref{fig:CounterTheoreticalTime} show the time it takes for the probability for a positive (anomaly) detection to reach 99.999\%. Here all the transmitted words are assumed to originate from a rogue system, therefore we set $p > 0.5$. A low detection time means that the system is quick at detecting the adversary. The figure shows that the time until detection rises as $T_{suspicion}$ rises. The rise is quicker for low values of $p$. Even so, with a very poor detection probability of $p = 0.6$ and $T_{suspicion} = 100$, (which is much more than the threshold required to bring the false alarm rate to near 0), the time until detection reaches only 2 seconds. So, we can see from the Markov model that using a suspicion counter drastically reduces the false alarm rate, while slowing down the detection only mildly.
    
 \level{Performance of the Complete Method} \label{PerformanceEvaluationCompleteMethod}
 
@@ -808,7 +808,7 @@ We do not discuss how to identify an additional receiver, since we could not ide
   
   In Section \ref{PerformanceEvaluationSingleWord} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue transmitter. We now continue our evaluation with these two feature sets.
   
-  We wish to examine the FAR as a function of the counter threshold. For each transmitter-receiver pair in our data set we repeat the following procedure. First we train an anomaly detector on words recorded with the selected pair. Then we test the detector a 1000 times on words recorded with the same pair. Each time we use the same 1968 words after cyclically shifting them by a random integer in order to start the counter at a different point in time. We compute the FAR by dividing the number of times an anomaly was detected by the total number of measurements. Overall there are such 18000 measurements for each data set (9 transmitter $\times$ 2 receivers $\times$ 1000 repetitions).
+  We wish to examine the FAR as a function of the counter threshold. For each transmitter-receiver pair in our data set we repeat the following procedure. First, we train an anomaly detector on words recorded with the selected pair. Then we test the detector 1000 times on words recorded with the same pair. Each time we use the same 1968 words after cyclically shifting them by a random integer in order to start the counter at a different point in time. We compute the FAR by dividing the number of times an anomaly was detected by the total number of measurements. Overall there are such 18000 measurements for each data set (9 transmitter $\times$ 2 receivers $\times$ 1000 repetitions).
   We repeat this procedure with different values of $T_{suspicion}$, once for each feature set. We use $T_{voting} = 100$ in all experiments. Experiments in Section \ref{PerformanceEvaluationSingleWord} show that this is a reasonable choice that balances the FAR and the MDR for detection based on single words. The train-test split is 60\%-40\%. Figure \ref{fig:counter_far} shows the results.
   
   \begin{figure}[t]
@@ -851,7 +851,7 @@ We do not discuss how to identify an additional receiver, since we could not ide
   Further work needs to be done in order to evaluate the sensitivity of the hardware fingerprints to external changes such as fluctuations in temperature or supply voltage levels, and to evaluate its stability over time.
   
   ARINC 429 lacks essential security features. It is a safety liability that is present today in almost every civil aircraft.
-  Our method could help close of the gap between ARINC 429 and modern security requirements. Thus we argue that it is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
+  Our method could help close of the gap between ARINC 429 and modern security requirements. Thus, we argue that it is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
   
 \bibliographystyle{IEEEtranS}
 \bibliography{biblio} 
