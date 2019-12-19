@@ -135,7 +135,9 @@
 
 \iftoggle{paper}{
   \maketitle
-  \input{abstract_english.tex}
+  \begin{abstract}
+      \input{abstract_english.tex}
+  \end{abstract}
 }{
   \pagenumbering{gobble}  %  suppress page numbers
   \input{title_page_english_outer.tex}
@@ -359,7 +361,8 @@
     \end{tabular}
   \end{table}
  
-  
+ \level{Preliminary Tests} \label{PreliminaryTests}
+ 
   \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__by_message.png}
@@ -385,7 +388,7 @@
   \end{figure}
   
  
-\level{Preliminary Tests} \label{PreliminaryTests}
+
   Before we started evaluating our IDS, we performed a basic proof of concept investigation to assess the ``detectability'' of hardware changes. To do so we reduced raw traces of whole words (about 1600 samples) to 2 dimensions with Primary Component Analysis (PCA) \cite{pearson1901liii}.
  
   Figure \ref{fig:pca_by_message} shows the result of the PCA on a representative subset of our data set. In the figure there are 6 distinctive clusters, each one corresponds to words with a different message. The PCA naturally separates the words by the value of the message they transmit, since this property is responsible for the bulk of the difference between words.
