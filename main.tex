@@ -365,29 +365,27 @@
  
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__by_message.png}
+    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__by_message.png}
     \caption{PCA dimensionality reduction of whole words}
     \label{fig:pca_by_message}
-  \end{figure}
   
- 
-  \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_tx_id__zoom_message_5A5A5A5A.png}
+    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_tx_id__zoom_message_5A5A5A5A.png}
     \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by transmitter ID}
     \label{fig:pca_by_tx_id}
+  \end{figure}
   
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_rx_id__zoom_message_5A5A5A5A.png}
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_rx_id__zoom_message_5A5A5A5A.png}
     \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by receiver ID}
     \label{fig:pca_by_rx_id}
-  
+    
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{PCA/pca__whole_words__all_messages__color_by_load__zoom_message_5A5A5A5A.png}
+    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_load__zoom_message_5A5A5A5A.png}
     \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by additional receiver ID}
     \label{fig:pca_by_load}
   \end{figure}
-  
- 
 
   Before we started evaluating our IDS, we performed a basic proof of concept investigation to assess the ``detectability'' of hardware changes. To do so we reduced raw traces of whole words (about 1600 samples) to 2 dimensions with Primary Component Analysis (PCA) \cite{pearson1901liii}.
  
