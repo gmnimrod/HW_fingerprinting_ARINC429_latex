@@ -178,7 +178,7 @@
 \sublevel{Related Work} \label{RelatedWork}
   To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; wireless radio \cite{ellis2001characteristics, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{dey2014accelprint, das2016tracking}.
   
-  One domain in particular is of special interest to us: controller area network (CAN bus) \cite{bosch1991canbus}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN. Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
+  One domain in particular is of special interest to us: controller area network (CAN bus) \cite{bosch1991canbus}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN). Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
   
   In recent years a number of successful cyber-attacks were demonstrated on cars \cite{miller2015remote}, motivating researchers to search for new ways to hinder attacks.
   
@@ -196,7 +196,7 @@
   
   In \cite{kneib2018scission}, when identifying the source of a frame, the authors first construct a number of artificial signals from that frame. The artificial signals are made by cutting the signal and concatenating parts that share a similar behavior: positive slope transient, negative slope transient and stable positive voltage. For each of these three artificial signals, a set of time domain and frequency domain features are extracted.
   
-  CAN bus and ARINC 429 use different line protocols, therefore methods presented in the above papers cannot be directly applied to our problem without change. A key difference between the two protocols is the bus topology. In CAN bus dozens of transceivers may share one bus. The main threat CAN papers are dealing with is device hijacking, where one ECU is remotely hacked, and starts to transmit the messages of another ECU on the same bus. Since during normal operation of a car, devices do not spontaneously join or leave the network, all the devices are known to the defender in advance. This scenario naturally fits into a multiclass classification setting, where a message needs to be identified as belonging to one of many known classes. In ARINC 429 on the other hand, only one transmitter LRU is allowed on a line. Only that single transmitter LRU is known to the defender beforehand. The task is to categorize a message as either normal or as an anomaly (an attack). Multiclass classification algorithms are not suitable for this task, because only samples from the normal class can be obtained for training. Instead we need to use anomaly detection algorithms \cite{pimentel2014review}. Of the CAN bus papers we reviewed, only \cite{choi2018identifying} and \cite{choi2018voltageids} extend their algorithms to handle detection of unknown transmitters.
+  CAN bus and ARINC 429 use different line protocols, therefore methods presented in the above papers cannot be directly applied to our problem without change. A key difference between the two protocols is the bus topology. In CAN bus dozens of transceivers may share one bus. The main threat CAN papers are dealing with is device hijacking, where one ECU is remotely hacked, and starts to transmit the messages of another ECU on the same bus. Since during normal operation of a car, devices do not spontaneously join or leave the network, all the devices are known to the defender in advance. This scenario naturally fits into a multiclass classification setting, where a message needs to be identified as belonging to one of many known classes. In ARINC 429 on the other hand, only one transmitter is allowed on a line. Only that single transmitter is known to the defender beforehand. The task is to categorize a message as either normal or as an anomaly (an attack). Multiclass classification algorithms are not suitable for this task, because only samples from the normal class can be obtained for training. Instead we need to use anomaly detection algorithms \cite{pimentel2014review}. Of the CAN bus papers we reviewed, only \cite{choi2018identifying} and \cite{choi2018voltageids} extend their algorithms to handle detection of unknown transmitters.
   
 \sublevel{Contributions}
   We propose the use of hardware fingerprinting in order to imbue ARINC 429 buses with source authentication capabilities. Applying the method only requires the attachment of a standard-compliant monitoring unit to the bus. This method does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
@@ -600,7 +600,7 @@
   
   In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. The measurements labeled as anomalies are not present in the training set.
   
-  For the purpose of comparing the different feature sets, we set $T_{suspicion} = 1$. We then run our algorithm and calculate the false alarm and misdetection rates (FAR \& MDR respectively) as functions of $T_{voting}$. Next, we find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
+  For the purpose of comparing the different feature sets, we set $T_{suspicion} = 1$. We then run our algorithm and calculate the false alarm and misdetection rates (FAR \& MDR respectively) as functions of $T_{votes}$. Next, we find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
   
   In our graphs we convert the EER to ``false alarms per second'' (FA/Sec) under normal operation (system unaltered by an adversary). This gives a more concrete meaning to the numbers. The FA/Sec is calculated by multiplying the EER by the message rate, and is the inverse of mean time between failures. Note that each word occupies 36 bits, because the protocol mandates a minimum inter-word gap of at least 4 bit times. Thus the FA/Sec metric is defined as:
   
@@ -609,7 +609,7 @@
   Note that since the FA/Sec is linear in the EER, we can discuss the graphs as though they display the EER when giving a qualitative analysis.
   
 \sublevel{Identifying a Rogue Transmitter}
-  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the our transmitters as the legitimate device to be guarded. In addition, we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
+  In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the transmitters as the legitimate device to be guarded. In addition, we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
   
   We then test the trained IDS. We simulate a rogue transmitter LRU by using measurements of other transmitters connected to the chosen receiver as anomalies. We remind the reader that during each measurement, only one transmitter is connected to the bus.
   
@@ -694,7 +694,7 @@
   \end{figure}
 
 \level{Modeling the Suspicion Counter} \label{ModelingSuspicionCounter}
-  In this section we analyze the effect of the suspicion counter on overall the false alarm rate, using a Markov-chain approach. Let the probability that a word is detected as anomalous be denoted by $p$, and assume that the events of detecting a word as anomalous are i.i.d. 
+  In this section we analyze the effect of the suspicion counter on the overall false alarm rate, using a Markov-chain approach. Let the probability that a word is detected as anomalous be denoted by $p$, and assume that the events of detecting a word as anomalous are i.i.d. 
   Then we can describe the value of the counter after word $i$ arrives as a Markov random process. 
   Figure \ref{fig:suspicion_counter} shows, for example, the Markov process that corresponds to $T_{suspicion} = 3$.
   
@@ -789,7 +789,7 @@
    
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh.png}
+    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh_v2.png}
     \caption{Probability for a false alarm during a 10-hour flight}
     \label{fig:CounterTheoreticalFA}
     
@@ -812,7 +812,7 @@ We do not discuss how to identify an additional receiver, since we could not ide
   In Section \ref{PerformanceEvaluationSingleWord} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue transmitter. We now continue our evaluation with these two feature sets.
   
   We wish to examine the FAR as a function of the counter threshold. For each transmitter-receiver pair in our data set we repeat the following procedure. First, we train an anomaly detector on words recorded with the selected pair. Then we test the detector 1000 times on words recorded with the same pair. Each time we use the same 1968 words after cyclically shifting them by a random integer in order to start the counter at a different point in time. We compute the FAR by dividing the number of times an anomaly was detected by the total number of measurements. Overall there are such 18000 measurements for each data set (9 transmitter $\times$ 2 receivers $\times$ 1000 repetitions).
-  We repeat this procedure with different values of $T_{suspicion}$, once for each feature set. We use $T_{voting} = 100$ in all experiments. Experiments in Section \ref{PerformanceEvaluationSingleWord} show that this is a reasonable choice that balances the FAR and the MDR for detection based on single words. The train-test split is 60\%-40\%. Figure \ref{fig:counter_far} shows the results.
+  We repeat this procedure with different values of $T_{suspicion}$, once for each feature set. We use $T_{votes} = 100$ in all experiments. Experiments in Section \ref{PerformanceEvaluationSingleWord} show that this is a reasonable choice that balances the FAR and the MDR for detection based on single words. The train-test split is 60\%-40\%. Figure \ref{fig:counter_far} shows the results.
   
   \begin{figure}[t]
     \centering
