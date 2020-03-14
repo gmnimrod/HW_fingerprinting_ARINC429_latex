@@ -1,8 +1,8 @@
 \newif\ifpaper
-% \papertrue
+\papertrue
 
 \ifpaper
-\documentclass[compsoc,conference,a4paper,10pt,times]{IEEEtran}
+\documentclass[english]{llncs}
 \else
 % 12 pts font
 % two sided document. We later set the margins' size
@@ -130,6 +130,7 @@
 \title{Hardware Fingerprinting for the ARINC 429 Avionic Bus}
 %\author{Avishai Wool, Nimrod Gilboa Markevich}
 \author{Anonymous}
+\institute{An Anonymous University}
 
 \begin{document}
 
@@ -368,7 +369,9 @@
     \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__by_message.png}
     \caption{PCA dimensionality reduction of whole words}
     \label{fig:pca_by_message}
+  \end{figure}
   
+  \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_tx_id__zoom_message_5A5A5A5A.png}
     \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by transmitter ID}
@@ -380,7 +383,9 @@
     \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_rx_id__zoom_message_5A5A5A5A.png}
     \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by receiver ID}
     \label{fig:pca_by_rx_id}
-    
+  \end{figure}
+  
+  \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_load__zoom_message_5A5A5A5A.png}
     \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by additional receiver ID}
@@ -644,7 +649,10 @@
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_e1_p1_mdr_far.png}
     \caption{FAR and MDR for \(\text{E}_1\) as guarded as a function of the threshold}
     \label{fig:detection_easy_example}
+  \end{figure}
   
+  \begin{figure}[t]
+    \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_h21_p1_mdr_far.png}
     \caption{FAR and MDR for \(\text{H}_{21}\) as guarded as a function of the threshold}
     \label{fig:detection_difficult_example}
@@ -790,7 +798,10 @@
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh_v2.png}
     \caption{Probability for a false alarm during a 10-hour flight}
     \label{fig:CounterTheoreticalFA}
-    
+  \end{figure}
+  
+  \begin{figure}[t]
+    \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_time_vs_thresh.png}
     \caption{Time until the probability of a true detection exceeds 99.999\%}
     \label{fig:CounterTheoreticalTime}
@@ -830,7 +841,10 @@ We do not discuss how to identify an additional receiver, since we could not ide
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_tx-attack.png}
     \caption{Maximal length of time for detecting a rogue transmitter. $T_{votes} = 100$}
     \label{fig:counter_detection_time_rogue_tx}
+  \end{figure}
   
+  \begin{figure}[t]
+    \centering
     \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_rx-attack.png}
     \caption{Maximal length of time for detecting a rogue receiver. $T_{votes} = 100$}
     \label{fig:counter_detection_time_rogue_rx}
