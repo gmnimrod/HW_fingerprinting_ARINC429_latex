@@ -27,6 +27,7 @@
 \usepackage{xfrac}
 \usepackage{etoolbox}  % newtoggle
 \usepackage{adjustbox}
+\usepackage{subcaption}
 \usepackage{tikz}
 \usetikzlibrary{arrows}
 
@@ -214,12 +215,6 @@
    We demonstrate that our intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
   
-  \textbf{Organization}: Section \ref{Preliminaries} describes the ARINC 429 protocol and the adversary model. 
-  Section \ref{TheDataSet} presents the data set we collected,
-  and Section \ref{PreliminaryTests} demonstrates a proof of concept.
-  Section \ref{Approach} outlines our hardware fingerprinting approach. Section \ref{SignalSegmentation} describes our signal segmentation process and Section \ref{FeatureSets} covers the various feature sets we considered. 
-  Section \ref{PerformanceEvaluationSingleWord} describes the empirical evaluation of our detection method when it is based on single words. Section \ref{ModelingSuspicionCounter} presents a Markov-chain analysis of the suspicion counter, and Section \ref{PerformanceEvaluationCompleteMethod} describes the empirical performance evaluation of the complete method. We conclude with Section \ref{Conclusions}.
-  
 \level{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
 \sublevel{The ARINC 429 Standard}
@@ -237,7 +232,7 @@
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Traces/bits.png}
+    \includegraphics[width=0.5\linewidth, angle=0]{Traces/bits.png}
     \caption{ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal}
     \label{fig:word_example}
   \end{figure}
@@ -288,7 +283,7 @@
   \begin{figure}[t]
     \centering
     %Use 1 for the two columns
-    \includegraphics[width=1.0\linewidth, angle=0]{Images/setup_3}
+    \includegraphics[width=0.5\linewidth, angle=0]{Images/setup_3}
     \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
     \label{fig:SetupImage}
   \end{figure}
@@ -297,113 +292,8 @@
   
   In addition to the recordings from different transmitter-receiver pairs, we recorded \(\text{E}_1\) and \(\text{E}_2\) transmitting to \(\text{P}_1\) and \(\text{P}_2\) respectfully, with different Holt devices attached as additional receivers.
   
-  Table \ref{tab:RecordingsSummery} shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
+  Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
   
-  \begin{table}
-    \caption{Distribution of Recorded Words in the Data Set}
-    \label{tab:RecordingsSummery}
-    \centering
-    \begin{tabular}{|c | c c c|} 
-      \hline
-      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
-      \hline\hline
-      1 & \(\text{E}_1\) & \(\text{P}_1\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      2 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{10}\) & 4920 \\
-      \hline
-      3 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{12}\) & 4920 \\
-      \hline
-      4 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{20}\) & 4920 \\
-      \hline
-      5 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{22}\) & 4920 \\
-      \hline
-      6 & \(\text{H}_{10}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      7 & \(\text{H}_{11}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      8 & \(\text{H}_{12}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      9 & \(\text{H}_{13}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      10 & \(\text{H}_{20}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      11 & \(\text{H}_{21}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      12 & \(\text{H}_{22}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      13 & \(\text{H}_{23}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      14 & \(\text{E}_2\) & \(\text{P}_2\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      15 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{10}\) & 4920 \\
-      \hline
-      16 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{12}\) & 4920 \\
-      \hline
-      17 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{20}\) & 4920 \\
-      \hline
-      18 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{22}\) & 4920 \\
-      \hline
-      19 & \(\text{H}_{10}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      20 & \(\text{H}_{11}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      21 & \(\text{H}_{12}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      22 & \(\text{H}_{13}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      23 & \(\text{H}_{20}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      24 & \(\text{H}_{21}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      25 & \(\text{H}_{22}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-    \end{tabular}
-  \end{table}
- 
- \level{Preliminary Tests} \label{PreliminaryTests}
- 
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__by_message.png}
-    \caption{PCA dimensionality reduction of whole words}
-    \label{fig:pca_by_message}
-  \end{figure}
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_tx_id__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by transmitter ID}
-    \label{fig:pca_by_tx_id}
-  \end{figure}
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_rx_id__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by receiver ID}
-    \label{fig:pca_by_rx_id}
-  \end{figure}
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, height=0.4\textheight,angle=0,keepaspectratio]{PCA/pca__whole_words__all_messages__color_by_load__zoom_message_5A5A5A5A.png}
-    \caption{Dimensionality reduction of whole words, message \texttt{0x5A5A5A5A}, label by additional receiver ID}
-    \label{fig:pca_by_load}
-  \end{figure}
-
-  Before we started evaluating our IDS, we performed a basic proof of concept investigation to assess the ``detectability'' of hardware changes. To do so we reduced raw traces of whole words (about 1600 samples) to 2 dimensions with Primary Component Analysis (PCA) \cite{pearson1901liii}.
- 
-  Figure \ref{fig:pca_by_message} shows the result of the PCA on a representative subset of our data set. In the figure there are 6 distinctive clusters, each one corresponds to words with a different message. The PCA naturally separates the words by the value of the message they transmit, since this property is responsible for the bulk of the difference between words.
-  
-  In Figure \ref{fig:pca_by_tx_id} we zoom in on the leftmost cluster, which contains only words with the message \texttt{0x5A5A5A5A}. We see that in fact, the \texttt{0x5A5A5A5A} cluster is made up of smaller clusters. The words are labeled according to the transmitter that sent them. The figure shows that most (but not all) groups of words from the same transmitter form a cluster that is visibly distinguishable from the others, as demonstrated by the dashed ellipses. This indicates that the information needed to distinguish between different transmitters is present in the sampled words.
-  
-  Figure \ref{fig:pca_by_rx_id} shows the same words, labeled according to the primary receiver that was connected to the line ($P_1$ or $P_2$). The transmitters $E_1$ and $E_2$ are removed from the figure because each was only recorded with one receiver. We see that the two labels are visually distinguishable, as demonstrated by the dashed curved line. We conclude that receivers, as well as transmitters, can be fingerprinted.
-  
-  Lastly, in Figure \ref{fig:pca_by_load} the words are labeled according to the presence and identity of an \textit{additional receiver} on the bus. Only words from transmitters $E_1$ and $E_2$ are displayed, because the Holt transmitters were not recorded with additional receivers (recall Table \ref{tab:RecordingsSummery}). The figure shows that identifying an additional receiver is much more difficult than identifying a transmitter or a receiver, since we cannot separate words from different labels by a simple line or convex shape. This fact does not mean that it is impossible to detect an additional transmitter, only that it requires more information than that which is present in the first two primary components alone.
-  
-  Of course, we can't use this basic PCA method to implement an anomaly detector. First, we would need to record in advance all the possible words the transmitter LRU might transmit. And second, we used samples from all recordings when calculating the primary components, without distinguishing between a normal and a rogue system---in a real IDS, we can only use samples from the guarded bus to train our anomaly detector. Still, the above figures provide positive evidence that transmitter switches and receiver switches change the electrical signal in a noticeable way, while they do not provide definite proof that receiver addition does not.
-
 \level{The Hardware Fingerprinting Approach} \label{Approach}
   The fingerprinting IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
   
@@ -429,7 +319,7 @@
   \end{enumerate}
   
 \sublevel{Anomaly Detection per Segment}
-  Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} in Section \ref{SignalSegmentation}. A segment's characteristics depend on its type. Therefore, we opted to train a different anomaly detector for each type of segment.
+  Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}). A segment's characteristics depend on its type. Therefore, we opted to train a different anomaly detector for each type of segment.
   
   Anomaly detection, sometimes called novelty detection, is a well-established. There are numerous outlier and anomaly detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
   
@@ -452,7 +342,7 @@
 \level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
-  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and on the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all, we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels}.
+  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and on the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all, we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}).
   
   Thus, we split every 32-bit word into 127 segments. Note that there are only 127 segments, not 128, because the last bit is followed by a long ``NULL'' that lasts until the next word and has a unique shape. We do not associate this segment with any word.
   
@@ -465,42 +355,11 @@
     V_{h_2} = 7.2V 
   \end{align*}
   
-  Table \ref{tab:SegmentationLevels} shows the voltage levels used for each segment type. Figure \ref{fig:SegmentationTrace} shows an example of word segmentation.
-  
-  \begin{table}
-    \caption{Voltage Thresholds per Segment Type}
-    \label{tab:SegmentationLevels}
-    \centering
-    \begin{tabular}{|c c c|} 
-      \hline
-      Segment & Starting Threshold & Ending Threshold \\ [0.5ex] 
-      \hline\hline
-      LO & falls below $-V_{h_1}$ & rises above $-V_{h_2}$ \\
-      \hline
-      HI & rises above $V_{h_1}$ & falls below $V_{h_2}$ \\
-      \hline
-      NULL, HI to HI & falls below $V_{l_1}$ & rises above $V_{l_2}$ \\
-      \hline
-      NULL, HI to LO & falls below $V_{l_1}$ & falls below $-V_{l_2}$ \\
-      \hline
-      NULL, LO to LO & rises above $-V_{l_1}$ & falls below $-V_{l_2}$ \\
-      \hline
-      NULL, LO to HI & rises above $-V_{l_1}$ & rises above $V_{l_2}$ \\
-      \hline
-      Up from LO & rises above $-V_{h_2}$ & rises above $-V_{l_1}$ \\
-      \hline
-      Up from NULL & rises above $V_{l_2}$ & rises above $V_{h_1}$ \\
-      \hline
-      Down from HI & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
-      \hline
-      Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
-      \hline
-    \end{tabular}
-  \end{table}
+  Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}) shows the voltage levels used for each segment type. Figure \ref{fig:SegmentationTrace} shows an example of word segmentation.
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Traces/segmentation.png}
+    \includegraphics[width=0.5\linewidth, angle=0]{Traces/segmentation.png}
     \caption{A segmentation example of the bits 01. The trace exhibits all 4 up/down transitions, the ``HI'' and ``LO'' plateaus, and 3 of the 4 possible ``NULL'' segment types}
     \label{fig:SegmentationTrace}
   \end{figure}
@@ -509,7 +368,7 @@
   In our work we compare the performance of the feature sets described below.
  
 {\bf Raw Time-Domain Samples.}
-  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes}. At the sample rate we use (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 (see Table \ref{tab:feature_set_sizes}). This makes the Raw feature set a practical choice.
+  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes} (Appendix \ref{appendix:Tables}). At the sample rate we use (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 in the same table. This makes the Raw feature set a practical choice.
   
 {\bf Generic Time-Domain Feature Set.}
   As discussed in Section \ref{RelatedWork}, in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids, kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
@@ -563,40 +422,6 @@
   
   The segments ``NULL, LO to HI'' and ``NULL, HI to LO'' do not participate: not all segments of these types in the data set contain an overshoot.
   
-  \begin{table}
-    \caption{Number of Features per Segment Type}
-    \label{tab:feature_set_sizes}
-    \centering
-    \resizebox{\columnwidth}{!}{
-    \begin{tabular}{|c c c c c c|}
-      \hline
-      Segment & Segment Length & Raw & Generic & Polynomial & Hand-Crafted \\ [0.5ex]
-      \hline\hline
-      LO & 20-24 & 20 & 8 & 7 & 10 \\
-      \hline
-      HI & 20-23 & 20 & 8 & 7 & 10 \\
-      \hline
-      NULL, HI to HI & 17-22 & 17 & 8 & 7 & 2 \\
-      \hline
-      NULL, HI to LO & 17-21 & 17 & 8 & 8 & 0 \\
-      \hline
-      NULL, LO to LO & 17-22 & 17 & 8 & 7 & 2 \\
-      \hline
-      NULL, LO to HI & 17-21 & 17 & 8 & 8 & 0 \\
-      \hline
-      Up from LO & 4-6 & 4 & 8 & 3 & 2 \\
-      \hline
-      Up from NULL & 4-6 & 4 & 8 & 3 & 2 \\
-      \hline
-      Down from HI & 4-5 & 4 & 8 & 3 & 2 \\
-      \hline
-      Down from NULL & 4-5 & 4 & 8 & 3 & 2 \\
-      \hline
-    \end{tabular}
-    }
-  \end{table}
-  
-
 \level{Detection based on a Single Word} \label{PerformanceEvaluationSingleWord}
 \sublevel{Methodology} \label{Methodology}
   In order to evaluate the performance of our algorithm, we performed an extensive series of experiments. In each experiment we selected one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we selected a group of other devices as rogue devices. Their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary.
@@ -618,7 +443,7 @@
   
   Only the Holt devices were used to simulate rogue transmitters, regardless of whether the guarded transmitter is an Excalibur (\(\text{E}_1\) or \(\text{E}_2\)) or a Holt (\(\text{H}_{10}\), ..., \(\text{H}_{13}\), \(\text{H}_{20}\), ..., \(\text{H}_{23}\)).
   
-  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} are labeled as normal and used in the training stage and in the testing stage. Words from rows 6-13 are labeled as anomalies and used in the testing stage.
+  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) are labeled as normal and used in the training stage and in the testing stage. Words from rows 6-13 are labeled as anomalies and used in the testing stage.
   
   We repeat this process for all possible values of $T_{votes}$ (0-127) while keeping $T_{suspicion} = 1$. For each value of $T_{votes}$ we indicate the MDR and the FAR. From these values we obtain the EER and the FA/sec.
   
@@ -628,7 +453,7 @@
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_transmitter.png}
+    \includegraphics[width=0.5\linewidth, angle=0]{Graphs/fas_rogue_transmitter.png}
     \caption{Comparing the feature sets for identifying a rogue transmitter.} 
     % \(N = 1\)}
     \label{fig:rogue_transmitter_results}
@@ -644,18 +469,22 @@
   
   We demonstrate this point by examining two selected experiments. We plot the MDR and the FAR as a function of the threshold value using \(\text{E}_1\) (Figure \ref{fig:detection_easy_example}) and of \(\text{H}_{21}\) (Figure \ref{fig:detection_difficult_example}) as guarded devices. Both are connected to \(\text{P}_1\) and in both figures the Raw feature set is used. Note that again, in these graphs, lower is better.
   
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_e1_p1_mdr_far.png}
-    \caption{FAR and MDR for \(\text{E}_1\) as guarded as a function of the threshold}
-    \label{fig:detection_easy_example}
-  \end{figure}
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_h21_p1_mdr_far.png}
-    \caption{FAR and MDR for \(\text{H}_{21}\) as guarded as a function of the threshold}
-    \label{fig:detection_difficult_example}
+    \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_e1_p1_mdr_far.png}
+      \caption{}
+      \label{fig:detection_easy_example}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/time_h21_p1_mdr_far.png}
+      \caption{}
+      \label{fig:detection_difficult_example}
+    \end{subfigure}
+    \caption{FAR and MDR as a function of the threshold for different \((a)\) \(\text{E}_1\)  as a guarded device and \((b)\) \(\text{H}_{21}\) as a guarded device}
   \end{figure}
   
   Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} show that the two cases pose different levels of challenge for the IDS.
@@ -663,37 +492,37 @@
   
   Another thing to observe is that in both Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
   
-\sublevel{Identifying a Rogue Receiver Switch}
+\sublevel{Identifying a Rogue Receiver Switch} \label{IdentifyingRogueReceiverSwitch}
   In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments: One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a receiver.
   
   In the testing stage, we simulate an attack by using measurements taken with the same transmitter as in the training stage, but with the other receiver LRU.
   
-  For example, if we choose \(\text{H}_{10}\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 6 in Table \ref{tab:RecordingsSummery} are labeled as normal and used in the training stage and in the testing stage. Words from rows 19 are labeled as anomalies and used in the testing stage. In other words, \(\text{P}_1\) as replaced by \(\text{P}_2\).
+  For example, if we choose \(\text{H}_{10}\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 6 in Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) are labeled as normal and used in the training stage and in the testing stage. Words from rows 19 are labeled as anomalies and used in the testing stage. In other words, \(\text{P}_1\) as replaced by \(\text{P}_2\).
   
-  The results are shown in Figure \ref{fig:receiver_results}. We see that all feature sets perform worse than they did in identifying rogue transmitters (compare to Figure \ref{fig:rogue_transmitter_results}). That is to be expected, since communication systems are designed to mitigate the effect of the receivers on the transmission signal. The surprising result is that the Generic feature set performs better in this scenario than the Raw feature set, and the Polynomial feature set performs better than both of them. The fact that different feature sets are sensitive to changes in different components of the monitored system could be used to our advantage. An IDS could incorporate different anomaly detectors based on different feature sets. When an anomaly is detected, we could then identify the source of the attack by checking which feature set triggered the alarm.
+  We obtained the following results, in terms of the median false alarms per second: 791.84 for the Hand-Crafted feature set, 267.83 for Polynomial, 311.58 for Generic and 497.19 for Raw. We see that all feature sets perform worse than they did in identifying rogue transmitters. That is to be expected, since communication systems are designed to mitigate the effect of the receivers on the transmission signal. The surprising result is that the Generic feature set performs better in this scenario than the Raw feature set, and the Polynomial feature set performs better than both of them. The fact that different feature sets are sensitive to changes in different components of the monitored system could be used to our advantage. An IDS could incorporate different anomaly detectors based on different feature sets. When an anomaly is detected, we could then identify the source of the attack by checking which feature set triggered the alarm.
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_receiver_switch.png}
+    \includegraphics[width=0.5\linewidth, angle=0]{Graphs/fas_rogue_receiver_switch.png}
     \caption{Comparing the feature sets for identifying a rogue receiver switch.}
     %\(N = 1\)}
     \label{fig:receiver_results}
   \end{figure}
   
-\sublevel{Identifying an Addition of a Rogue Receiver}
+\sublevel{Identifying an Addition of a Rogue Receiver} \label{IdentifyingAdditionRogueReceiver}
   In the final series of experiments we simulate an attack, where the adversary connects an additional receiver to the bus. The training stage is the same as the training stage in the previous series of experiments, except that only \(\text{E}_1\) and \(\text{E}_2\) are used as transmitters.
   
   In the testing stage, we use measurements taken where a Holt receiver was connected to the bus in addition to the transmitter and receiver from the training stage.
   
-  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} are labeled as normal and used in the training stage and in the testing stage. Words from rows 2-5 are labeled as anomalies and used in the testing stage.
+  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) are labeled as normal and used in the training stage and in the testing stage. Words from rows 2-5 are labeled as anomalies and used in the testing stage.
   
-  The results are shown in Figure \ref{fig:load_results}. Note that there are only two data points for each feature set (one for \(\text{E}_1\) and one for \(\text{E}_2\)). The numbers over the box plot represent the mean instead of the median.
+  We obtained the following results, in terms of the average false alarms per second: 1368.60 for the Hand-Crafted feature set, 1273.85 for Polynomial, 1152.03 for Generic and 1067.25 for Raw. Note that we used an average instead of a median, since there are only two data points for each feature set (one for \(\text{E}_1\) and one for \(\text{E}_2\)).
   
-  In this series of experiments all feature sets perform poorly. By comparing Figures \ref{fig:receiver_results} and \ref{fig:load_results} we learn that adding a receiver affects the electrical characteristics significantly less than replacing a receiver. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) also means altering a long segment of the transmission line, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way: The electrical characteristics are not especially sensitive to the receiver, but rather to the transmission line as a whole.
+  In this series of experiments all feature sets perform poorly. By comparing the results section \ref{IdentifyingRogueReceiverSwitch} to those of \ref{IdentifyingAdditionRogueReceiver}, we learn that adding a receiver affects the electrical characteristics significantly less than replacing a receiver. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) also means altering a long segment of the transmission line, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way: The electrical characteristics are not especially sensitive to the receiver, but rather to the transmission line as a whole.
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/fas_rogue_receiver_add.png}
+    \includegraphics[width=0.5\linewidth, angle=0]{Graphs/fas_rogue_receiver_add.png}
     \caption{Comparing the feature sets for identifying a rogue receiver addition.}
     % \(N = 1\)}
     \label{fig:load_results}
@@ -793,18 +622,21 @@
   \end{equation}
    The probability of the counter reaching $T_{suspicion}$ after up to $n$ words is exactly the probability of reaching the final state $i = T_{suspicion}$, which is given by element $T_{suspicion} + 1$ of $x^{(n)}$.
    
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh_v2.png}
-    \caption{Probability for a false alarm during a 10-hour flight}
-    \label{fig:CounterTheoreticalFA}
-  \end{figure}
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_time_vs_thresh.png}
-    \caption{Time until the probability of a true detection exceeds 99.999\%}
-    \label{fig:CounterTheoreticalTime}
+   \begin{figure}[t]
+     \centering
+    \begin{subfigure}{0.5\linewidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_fa_vs_thresh_v2.png}
+      \caption{}
+      \label{fig:CounterTheoreticalFA}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\linewidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_theoretical_time_vs_thresh.png}
+      \caption{}
+      \label{fig:CounterTheoreticalTime}
+    \end{subfigure}
+    \caption{\((a)\) Probability for a false alarm during a 10-hour flight \((b)\) Time until the probability of a true detection exceeds 99.999\%}
   \end{figure}
 
   Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10-hour flight as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate of 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our data set. We can see that for every value of $p$, if $T_{suspicion}$ is high enough, the false alarm rate probability drops to 0. The lower $p$ is, the minimal $T_{suspicion}$ that is required is lower. Interestingly, even for a very high single-word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the probability of a false alarm drops to 0.
@@ -825,7 +657,7 @@ We do not discuss how to identify an additional receiver, since we could not ide
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_far.png}
+    \includegraphics[width=0.5\linewidth, angle=0]{Graphs/counter_far.png}
     \caption{FAR as a function of $T_{suspicion}$. $T_{votes} = 100$}
     \label{fig:counter_far}
   \end{figure}
@@ -838,16 +670,19 @@ We do not discuss how to identify an additional receiver, since we could not ide
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_tx-attack.png}
-    \caption{Maximal length of time for detecting a rogue transmitter. $T_{votes} = 100$}
-    \label{fig:counter_detection_time_rogue_tx}
-  \end{figure}
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_rx-attack.png}
-    \caption{Maximal length of time for detecting a rogue receiver. $T_{votes} = 100$}
-    \label{fig:counter_detection_time_rogue_rx}
+    \begin{subfigure}{0.5\linewidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_tx-attack.png}
+      \caption{}
+      \label{fig:counter_detection_time_rogue_tx}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\linewidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_rx-attack.png}
+      \caption{}
+      \label{fig:counter_detection_time_rogue_rx}
+    \end{subfigure}
+    \caption{Maximal length of time for detecting \((a)\) a rogue transmitter and \((b)\) a rogue receiver. $T_{votes} = 100$}
   \end{figure}
   
   The figures show that the suspicion counter reduces false alarms at the expense of only mildly delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
@@ -870,6 +705,137 @@ We do not discuss how to identify an additional receiver, since we could not ide
   
 \bibliographystyle{IEEEtranS}
 \bibliography{biblio} 
+
+\appendix
+
+\section{Tables} \label{appendix:Tables}
+
+  \begin{table}
+    \caption{Distribution of Recorded Words in the Data Set}
+    \label{tab:RecordingsSummery}
+    \centering
+    \begin{tabular}{|c | c c c|} 
+      \hline
+      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
+      \hline\hline
+      1 & \(\text{E}_1\) & \(\text{P}_1\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      2 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      3 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      4 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      5 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      6 & \(\text{H}_{10}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      7 & \(\text{H}_{11}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      8 & \(\text{H}_{12}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      9 & \(\text{H}_{13}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      10 & \(\text{H}_{20}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      11 & \(\text{H}_{21}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      12 & \(\text{H}_{22}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      13 & \(\text{H}_{23}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      14 & \(\text{E}_2\) & \(\text{P}_2\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      15 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      16 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      17 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      18 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      19 & \(\text{H}_{10}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      20 & \(\text{H}_{11}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      21 & \(\text{H}_{12}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      22 & \(\text{H}_{13}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      23 & \(\text{H}_{20}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      24 & \(\text{H}_{21}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      25 & \(\text{H}_{22}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+    \end{tabular}
+  \end{table}
+  
+  \begin{table}
+    \caption{Voltage Thresholds per Segment Type}
+    \label{tab:SegmentationLevels}
+    \centering
+    \begin{tabular}{|c c c|} 
+      \hline
+      Segment & Starting Threshold & Ending Threshold \\ [0.5ex] 
+      \hline\hline
+      LO & falls below $-V_{h_1}$ & rises above $-V_{h_2}$ \\
+      \hline
+      HI & rises above $V_{h_1}$ & falls below $V_{h_2}$ \\
+      \hline
+      NULL, HI to HI & falls below $V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      NULL, HI to LO & falls below $V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      NULL, LO to LO & rises above $-V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      NULL, LO to HI & rises above $-V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      Up from LO & rises above $-V_{h_2}$ & rises above $-V_{l_1}$ \\
+      \hline
+      Up from NULL & rises above $V_{l_2}$ & rises above $V_{h_1}$ \\
+      \hline
+      Down from HI & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
+      \hline
+      Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
+      \hline
+    \end{tabular}
+  \end{table}
+
+  \begin{table}
+    \caption{Number of Features per Segment Type}
+    \label{tab:feature_set_sizes}
+    \centering
+    \resizebox{\columnwidth}{!}{
+    \begin{tabular}{|c c c c c c|}
+      \hline
+      Segment & Segment Length & Raw & Generic & Polynomial & Hand-Crafted \\ [0.5ex]
+      \hline\hline
+      LO & 20-24 & 20 & 8 & 7 & 10 \\
+      \hline
+      HI & 20-23 & 20 & 8 & 7 & 10 \\
+      \hline
+      NULL, HI to HI & 17-22 & 17 & 8 & 7 & 2 \\
+      \hline
+      NULL, HI to LO & 17-21 & 17 & 8 & 8 & 0 \\
+      \hline
+      NULL, LO to LO & 17-22 & 17 & 8 & 7 & 2 \\
+      \hline
+      NULL, LO to HI & 17-21 & 17 & 8 & 8 & 0 \\
+      \hline
+      Up from LO & 4-6 & 4 & 8 & 3 & 2 \\
+      \hline
+      Up from NULL & 4-6 & 4 & 8 & 3 & 2 \\
+      \hline
+      Down from HI & 4-5 & 4 & 8 & 3 & 2 \\
+      \hline
+      Down from NULL & 4-5 & 4 & 8 & 3 & 2 \\
+      \hline
+    \end{tabular}
+    }
+  \end{table}
 
 % if thesis report then English abstract is after bibliography
 \iftoggle{paper}{
