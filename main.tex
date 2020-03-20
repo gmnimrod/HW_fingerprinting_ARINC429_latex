@@ -638,6 +638,40 @@ We do not discuss how to identify an additional receiver, since we could not ide
 \section{Tables} \label{appendix:Tables}
 
   \begin{table}
+    \caption{Number of Features per Segment Type}
+    \label{tab:feature_set_sizes}
+    \centering
+    \resizebox{\columnwidth}{!}{
+    \begin{tabular}{|c c c c c c|}
+      \hline
+      Segment & Segment Length & Raw & Generic & Polynomial & Hand-Crafted \\ [0.5ex]
+      \hline\hline
+      LO & 20-24 & 20 & 8 & 7 & 10 \\
+      \hline
+      HI & 20-23 & 20 & 8 & 7 & 10 \\
+      \hline
+      NULL, HI to HI & 17-22 & 17 & 8 & 7 & 2 \\
+      \hline
+      NULL, HI to LO & 17-21 & 17 & 8 & 8 & 0 \\
+      \hline
+      NULL, LO to LO & 17-22 & 17 & 8 & 7 & 2 \\
+      \hline
+      NULL, LO to HI & 17-21 & 17 & 8 & 8 & 0 \\
+      \hline
+      Up from LO & 4-6 & 4 & 8 & 3 & 2 \\
+      \hline
+      Up from NULL & 4-6 & 4 & 8 & 3 & 2 \\
+      \hline
+      Down from HI & 4-5 & 4 & 8 & 3 & 2 \\
+      \hline
+      Down from NULL & 4-5 & 4 & 8 & 3 & 2 \\
+      \hline
+    \end{tabular}
+    }
+  \end{table}
+
+  \begin{table}
+  \begin{minipage}{0.5\textwidth}
     \caption{Distribution of Recorded Words in the Data Set}
     \label{tab:RecordingsSummery}
     \centering
@@ -698,8 +732,35 @@ We do not discuss how to identify an additional receiver, since we could not ide
       26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
       \hline
     \end{tabular}
+  \end{minipage}%
+  \begin{minipage}{0.5\textwidth}
+    \caption{Generic Feature Set}
+    \label{tab:generic_feature_set}
+    \centering
+    \begin{tabular}{|c c|} 
+      \hline
+      Feature & Description \\ [0.5ex] 
+      \hline\hline
+      Mean & \(\mu = \frac{1}{N}\sum_{i=1}^{N}x(i)\) \\
+      \hline
+      Standard Deviation & \(\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2}\) \\
+      \hline
+      Variance & \(\sigma^2 = \frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2\) \\
+      \hline
+      Skewness & \(skew = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^3\) \\
+      \hline
+      Kurtosis & \(kurt = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^4\) \\
+      \hline
+      Root Mean Square & \(rms = \sqrt{\frac{1}{N}\sum_{i=1}^{N}x(i)^2}\) \\
+      \hline
+      Maximum & \(max = max(x(i))_{i=1...N}\) \\
+      \hline
+      Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
+      \hline
+    \end{tabular}
+  \end{minipage}
   \end{table}
-  
+
   \begin{table}
     \caption{Voltage Thresholds per Segment Type}
     \label{tab:SegmentationLevels}
@@ -729,66 +790,6 @@ We do not discuss how to identify an additional receiver, since we could not ide
       Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
       \hline
     \end{tabular}
-  \end{table}
-  
-  \begin{table}
-    \caption{Generic Feature Set}
-    \label{tab:generic_feature_set}
-    \centering
-    \begin{tabular}{|c c|} 
-      \hline
-      Feature & Description \\ [0.5ex] 
-      \hline\hline
-      Mean & \(\mu = \frac{1}{N}\sum_{i=1}^{N}x(i)\) \\
-      \hline
-      Standard Deviation & \(\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2}\) \\
-      \hline
-      Variance & \(\sigma^2 = \frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2\) \\
-      \hline
-      Skewness & \(skew = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^3\) \\
-      \hline
-      Kurtosis & \(kurt = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^4\) \\
-      \hline
-      Root Mean Square & \(rms = \sqrt{\frac{1}{N}\sum_{i=1}^{N}x(i)^2}\) \\
-      \hline
-      Maximum & \(max = max(x(i))_{i=1...N}\) \\
-      \hline
-      Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
-      \hline
-    \end{tabular}
-  \end{table}
-
-  \begin{table}
-    \caption{Number of Features per Segment Type}
-    \label{tab:feature_set_sizes}
-    \centering
-    \resizebox{\columnwidth}{!}{
-    \begin{tabular}{|c c c c c c|}
-      \hline
-      Segment & Segment Length & Raw & Generic & Polynomial & Hand-Crafted \\ [0.5ex]
-      \hline\hline
-      LO & 20-24 & 20 & 8 & 7 & 10 \\
-      \hline
-      HI & 20-23 & 20 & 8 & 7 & 10 \\
-      \hline
-      NULL, HI to HI & 17-22 & 17 & 8 & 7 & 2 \\
-      \hline
-      NULL, HI to LO & 17-21 & 17 & 8 & 8 & 0 \\
-      \hline
-      NULL, LO to LO & 17-22 & 17 & 8 & 7 & 2 \\
-      \hline
-      NULL, LO to HI & 17-21 & 17 & 8 & 8 & 0 \\
-      \hline
-      Up from LO & 4-6 & 4 & 8 & 3 & 2 \\
-      \hline
-      Up from NULL & 4-6 & 4 & 8 & 3 & 2 \\
-      \hline
-      Down from HI & 4-5 & 4 & 8 & 3 & 2 \\
-      \hline
-      Down from NULL & 4-5 & 4 & 8 & 3 & 2 \\
-      \hline
-    \end{tabular}
-    }
   \end{table}
 
 % if thesis report then English abstract is after bibliography
