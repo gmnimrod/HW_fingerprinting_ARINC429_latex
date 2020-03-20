@@ -165,9 +165,7 @@
    
   One way to add authentication without an industry-wide update of the protocol is to implement it at a higher layer of the protocol stack. Unfortunately, in ARINC 429 there are only 19 data bits in a message. This is typically insufficient for a secure implementation of message code authentication (MAC).
   
-  Intrusion detection systems (IDS) are often employed to retrofit security into similar systems that were designed without security in mind, such as CAN bus in automobile systems \cite{muter2011entropy}. An IDS is a software or device that continuously compares the observed behavior of the system to the expected behavior and raises an alarm whenever anomalies are detected. However, intrusion detection systems that analyze only the message content are limited in their ability to identify the sender of a message.  An attacker that is aware of the presence of the IDS might attempt to fool it by sending data that is identical or very similar to normal data.  Therefore, in order to identify the message source, we need to analyze the electrical signal. The guiding principle is that every transmitter is unique, even those of the same model and maker, due to minor defects in production, component tolerances etc., which manifest in the electrical signal. Hence, every signal has inimitable characteristics that can be used to identify the sender. To a lesser extent, the signal is also affected by the receivers and the bus topology. The characteristics can be used to identify changes to passive components on the bus. The process of learning to associate a signal to a transmitter is called hardware fingerprinting.
-  
-  It is important to note that hardware fingerprinting cannot replace the use of content-based IDSs, as hardware fingerprinting only detects attacks, where one transmitter sends messages, that are normally sent by another transmitter. On the other hand, an IDS that inspects only the data is at risk of being fooled by a clever adversary that mimics normal behavior. Using both methods in tandem supplies protection against the widest range of attacks. Exploring content-based detection is beyond the scope of this \iftoggle{paper} {paper} {work}.
+  Another solution is to employ an intrusion detection system (IDS) to retrofit security into the existing protocol. We propose an IDS that relies on hardware fingerprints, i.e, on characteristics of the electrical signal, in order to identify changes in bus topology and connected hardware.
   
 % \sublevel{Motivation}
 %   \color{gray}
@@ -180,25 +178,11 @@
 \sublevel{Related Work} \label{RelatedWork}
   To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; wireless radio \cite{ellis2001characteristics, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{dey2014accelprint, das2016tracking}.
   
-  One domain in particular is of special interest to us: controller area network (CAN bus) \cite{bosch1991canbus}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both are protocols for wired local area networks. Both are meant to be used in a static topology. Both share similar bit rates (up to 100 Kbits/sec in ARINC, up to 1 Mbits/sec in CAN) and similar word lengths (32 bits in ARINC, up to 128 bits in CAN). Both were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
+  One domain in particular is of special interest to us: controller area network (CAN bus) \cite{bosch1991canbus}, the most commonly used standard for in-vehicle communication in the automotive industry. ARINC 429 and CAN bus have a lot in common: Both protocols were formulated more than 30 years ago, and both were not designed for security but rather for safety, and as a consequence lack source authentication.
   
-  In recent years a number of successful cyber-attacks were demonstrated on cars \cite{miller2015remote}, motivating researchers to search for new ways to hinder attacks.
+  In recent years a number of successful cyber-attacks were demonstrated on cars \cite{miller2015remote}, motivating researchers to search for new ways to hinder attacks. A number of papers demonstrate the use of hardware fingerprints for detecting changes in hardware: \cite{murvay2014source}, \cite{cho2017viden}, \cite{choi2018voltageids}, \cite{kneib2018scission}.
   
-  % like ARINC 429, straightforward authentication tools like HMAC are an unlikely solution \textcolor{gray}{(elaborate?)}. 
-  
-  In \cite{cho2016fingerprinting} the authors propose using the measured arrival time of periodic messages to estimate characteristics of a transmitter's internal clock, which are then used as fingerprints. It has been demonstrated in \cite{sagong2018cloaking} that timing features can be emulated by an adversary, and therefore might not be a reliable means for identification.
-  
-  In \cite{murvay2014source} the authors demonstrate that transmitters of CAN messages can be identified by the signal's electrical characteristics. They propose using the CAN message ID field of the electric signal as a fingerprint. They also observed that the electrical characteristics remain stable for a period of months in a lab setup.
-  
-  In \cite{choi2018identifying} the authors suggest using time domain and frequency domain features extracted from the CAN ID field as fingerprints. They perform feature selection using the mutual information criterion in order to reduce the number of used features. Machine learning (ML) techniques are utilized for classification (SVM, NN and BDT).
-  
-  In \cite{cho2017viden} the authors devise a method for generating fingerprints based on the order statistics of voltage levels. The algorithm adapts to fluctuations in power supply levels and to changes in temperature by constantly updating the fingerprints based on new samples.
-  
-  In \cite{choi2018voltageids} the authors construct the fingerprints by extracting time domain and frequency domain features from selected parts of a message. They perform feature selection with sequential forward selection, and SVM and BDT for classification. Incremental learning techniques \cite{diehl2003svm} are employed in order to compensate for temporal changes of the characteristics.
-  
-  In \cite{kneib2018scission}, when identifying the source of a frame, the authors first construct a number of artificial signals from that frame. The artificial signals are made by cutting the signal and concatenating parts that share a similar behavior: positive slope transient, negative slope transient and stable positive voltage. For each of these three artificial signals, a set of time domain and frequency domain features are extracted.
-  
-  CAN bus and ARINC 429 use different line protocols, therefore methods presented in the above papers cannot be directly applied to our problem without change. A key difference between the two protocols is the bus topology. In CAN bus dozens of transceivers may share one bus. The main threat CAN papers are dealing with is device hijacking, where one ECU is remotely hacked, and starts to transmit the messages of another ECU on the same bus. Since during normal operation of a car, devices do not spontaneously join or leave the network, all the devices are known to the defender in advance. This scenario naturally fits into a multiclass classification setting, where a message needs to be identified as belonging to one of many known classes. In ARINC 429 on the other hand, only one transmitter is allowed on a line. Only that single transmitter is known to the defender beforehand. The task is to categorize a message as either normal or as an anomaly (an attack). Multiclass classification algorithms are not suitable for this task, because only samples from the normal class can be obtained for training. Instead we need to use anomaly detection algorithms \cite{pimentel2014review}. Of the CAN bus papers we reviewed, only \cite{choi2018identifying} and \cite{choi2018voltageids} extend their algorithms to handle detection of unknown transmitters.
+  CAN bus and ARINC 429 use different line protocols and have different attack models, therefore methods presented in the above papers cannot be directly applied to our problem without change. They can, however, serve as a starting point for ARINC 429 hardware fingerprinting.
   
 \sublevel{Contributions}
   We propose the use of hardware fingerprinting in order to imbue ARINC 429 buses with source authentication capabilities. Applying the method only requires the attachment of a standard-compliant monitoring unit to the bus. This method does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
@@ -229,13 +213,6 @@
   The protocol allows a choice of one of two bit rates: Slow, at 12.0 to 14.5 Kbits/sec, and fast, at 100 Kbits/sec. The bit rate on a bus is fixed and maintained within \%1. The signal is self-clocking.
   
   MIL-STD-1553 \cite{united1986milstd1553} is the military bus standard alternative of ARINC 429.
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=0.5\linewidth, angle=0]{Traces/bits.png}
-    \caption{ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal}
-    \label{fig:word_example}
-  \end{figure}
   
 \sublevel{The Adversary Model}
   Our method is designed to guard against ``technician attacks''. This type of attack involves an adversary that has brief physical access to the system. Such an adversary is able to replace LRUs or add new ones to the bus.
@@ -295,10 +272,7 @@
   Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
   
 \level{The Hardware Fingerprinting Approach} \label{Approach}
-  The fingerprinting IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one.
-  
-\sublevel{Advantage Over Content Based IDSs}
-  An intrusion detection system which draws its information exclusively from the digital content of the transmitted messages will be unable to detect the rogue transmitter LRU during the latter's dormant phases, or to detect a rogue receiver LRU. Only during an active phase of the attack of a rogue transmitter LRU is the transmitted data distinguishable from that of a legitimate transmission. By utilizing information from the analog domain, we are able to detect hardware changes independently from the transmitted data.  Usually, before takeoff, the aircraft systems are checked for basic integrity. During these pre-flight operations the changes to the bus can be detected, even if the transmitter LRU is sending normal data.
+  The fingerprinting IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted, so that only authorized personnel are able to trigger the training mechanism. This restriction is in place in order to prevent an adversary from retraining the IDS after switching the guarded transmitter by the rogue one. Usually, before takeoff, the aircraft systems are checked for basic integrity. During these pre-flight operations the changes to the bus can be detected, even if the transmitter LRU is sending normal data.
   
 \sublevel{IDS Overview} \label{Overview}
   We will next describe our proposed method of anomaly detection. We divide the algorithm into several stages. This section provides an overview of these steps. In the subsequent sections selected stages are explained in greater detail as needed.
@@ -352,9 +326,19 @@
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=0.5\linewidth, angle=0]{Traces/segmentation.png}
-    \caption{A segmentation example of the bits 01. The trace exhibits all 4 up/down transitions, the ``HI'' and ``LO'' plateaus, and 3 of the 4 possible ``NULL'' segment types}
-    \label{fig:SegmentationTrace}
+    \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Traces/bits.png}
+      \caption{}
+      \label{fig:word_example}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Traces/segmentation.png}
+      \caption{}
+      \label{fig:SegmentationTrace}
+    \end{subfigure}
+    \caption{\((a)\) ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal \((b)\) A segmentation example of the bits 01. The trace exhibits all 4 up/down transitions, the ``HI'' and ``LO'' plateaus, and 3 of the 4 possible ``NULL'' segment types}
   \end{figure}
   
 \level{Feature Sets} \label{FeatureSets}
@@ -465,8 +449,8 @@
   Then we can describe the value of the counter after word $i$ arrives as a Markov random process. 
   Figure \ref{fig:suspicion_counter} shows, for example, the Markov process that corresponds to $T_{suspicion} = 3$.
   
-  Each state in the diagram corresponds to a counter value. For a state representing a counter value of $0 < i < T_{suspicion}$ there is a transition to the right, with probability $p$, indicating that a word was detected as an anomaly (and the counter is increased), and a transition to the left, with probability $1-p$, indicating a normal word (and the counter is decreased). 
-  The first and last states ($i = 0$ and $i = T_{suspicion}$ respectfully) are unique. The counter cannot be decreased below 0. Therefore, when $i = 0$, instead of a transition left we see a self-loop with probability $1 - p$. Finally, the state for $i = T_{suspicion}$ is a final state indicating that an alarm is raised: the probability of staying at $i = T_{suspicion}$ is 1. 
+  A transition to the right indicates that a word was detected as an anomaly, and a transition to the left indicates that a word was detected as normal. 
+  The counter cannot be decreased below the initial value of 0. The state for $i = T_{suspicion}$ is a final state indicating that an alarm is raised.
   
   \begin{figure}
   \centering
@@ -531,28 +515,6 @@
   \caption{Suspicion counter example for $T_{suspicion} = 3$}
   \label{fig:suspicion_counter}
   \end{figure}
-  
-  The transition matrix of such a Markov process is given by:
-  \begin{equation}
-    P = \begin{bmatrix}
-      1 - p & p     & 0      & 0 & \cdots & 0 \\
-      1 - p & 0     & p      & 0 & \cdots & 0 \\
-            &       & \vdots &   &       &   \\
-      0     & \cdots & 0 & 1 - p  & 0 & p     \\
-      0     & \cdots & 0 & 0      & 0 & 1
-    \end{bmatrix}
-  \end{equation}
-  The vector \(x^{(n)}\) represents the distribution of probabilities between counter values after word $n$ was processed. The counter always starts at 0. Therefore:
-  \begin{equation}
-    x^{(0)} = \begin{bmatrix}
-    1 & 0 & 0 & \cdots & 0
-    \end{bmatrix}
-  \end{equation}
-  The distribution of probabilities after $n$ words is given by raising the transition matrix $P$ to the power of $n$:
-  \begin{equation} \label{eq:prob_after_n_words}
-    x^{(n)} = x^{(0)}P^n
-  \end{equation}
-   The probability of the counter reaching $T_{suspicion}$ after up to $n$ words is exactly the probability of reaching the final state $i = T_{suspicion}$, which is given by element $T_{suspicion} + 1$ of $x^{(n)}$.
    
    \begin{figure}[t]
      \centering
