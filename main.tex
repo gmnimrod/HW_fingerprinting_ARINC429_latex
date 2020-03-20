@@ -346,14 +346,7 @@
   
   Thus, we split every 32-bit word into 127 segments. Note that there are only 127 segments, not 128, because the last bit is followed by a long ``NULL'' that lasts until the next word and has a unique shape. We do not associate this segment with any word.
   
-  The segmentation is performed in the following manner. A segment starts where the voltage level of the signal rises above / falls below a certain threshold, and ends where it falls below / rises above another threshold. 4 different thresholds are employed in order to produce a stabling hysteresis effect. We denote them as follows, and use them and their negative to define segment boundaries:
-  
-  \begin{align*}
-    V_{l_1} = 2.0V \\
-    V_{l_2} = 2.8V \\
-    V_{h_1} = 8.0V \\
-    V_{h_2} = 7.2V 
-  \end{align*}
+  The segmentation is performed in the following manner. A segment starts where the voltage level of the signal rises above / falls below a certain threshold, and ends where it falls below / rises above another threshold. 4 different thresholds are employed in order to produce a stabling hysteresis effect. We denote them as follows, and use them and their negative to define segment boundaries: \(V_{l_1} = 2.0V\), \(V_{l_2} = 2.8V\), \(V_{h_1} = 8.0V\), \(V_{h_2} = 7.2V\)
   
   Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}) shows the voltage levels used for each segment type. Figure \ref{fig:SegmentationTrace} shows an example of word segmentation.
   
@@ -375,34 +368,7 @@
   
   These features are of a generic nature, in the sense that the shape of the signal does not affect the extraction process. Due to this property, it is possible to apply the same features in different fields of research.
   
-  We use the features that were presented in \cite{kneib2018scission} as our Generic set. Six of the eight features in this feature set are used in all four cited papers. The features we used are listed in Table \ref{tab:generic_feature_set}.
-  
-  \begin{table}
-    \caption{Generic Feature Set}
-    \label{tab:generic_feature_set}
-    \centering
-    \begin{tabular}{|c c|} 
-      \hline
-      Feature & Description \\ [0.5ex] 
-      \hline\hline
-      Mean & \(\mu = \frac{1}{N}\sum_{i=1}^{N}x(i)\) \\
-      \hline
-      Standard Deviation & \(\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2}\) \\
-      \hline
-      Variance & \(\sigma^2 = \frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2\) \\
-      \hline
-      Skewness & \(skew = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^3\) \\
-      \hline
-      Kurtosis & \(kurt = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^4\) \\
-      \hline
-      Root Mean Square & \(rms = \sqrt{\frac{1}{N}\sum_{i=1}^{N}x(i)^2}\) \\
-      \hline
-      Maximum & \(max = max(x(i))_{i=1...N}\) \\
-      \hline
-      Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
-      \hline
-    \end{tabular}
-  \end{table}
+  We use the features that were presented in \cite{kneib2018scission} as our Generic set. Six of the eight features in this feature set are used in all four cited papers. The features we used are listed in Table \ref{tab:generic_feature_set} (Appendix \ref{appendix:Tables}).
   
   In addition to time-domain features, the cited papers also employ frequency-domain features. We do not use frequency-domain features in this \iftoggle{paper} {paper} {work}. We argue that the non-periodic nature of the signals, that are the result of our segmentation method, does not benefit from frequency analysis.
 
@@ -492,42 +458,8 @@
   
   Another thing to observe is that in both Figures \ref{fig:detection_easy_example} and \ref{fig:detection_difficult_example} the FAR curve is roughly the same, while the MDR curve spreads to higher thresholds in Figure \ref{fig:detection_difficult_example}. Note that the FAR is only calculated from samples of the guarded transmitter, and that the MDR is only calculated from samples of the rogue transmitters. The task of labeling a word from a guarded device as normal is not affected by the type of the guarded device. However, the success of the task of labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
   
-\sublevel{Identifying a Rogue Receiver Switch} \label{IdentifyingRogueReceiverSwitch}
-  In the next series of experiments we simulate an attack, where the adversary replaces an existing receiver with a rogue one. The training stage is the same as the training stage in the previous series of experiments: One of the Holt devices is used as a transmitter, and either \(\text{P}_1\) or \(\text{P}_2\) is used a receiver.
+  Our experimental results regarding the identification of a rogue receiver switch, and identification of an addition of a rogue receiver, have been omitted due to space constraints. The results can be found in our full technical report \cite{}
   
-  In the testing stage, we simulate an attack by using measurements taken with the same transmitter as in the training stage, but with the other receiver LRU.
-  
-  For example, if we choose \(\text{H}_{10}\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 6 in Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) are labeled as normal and used in the training stage and in the testing stage. Words from rows 19 are labeled as anomalies and used in the testing stage. In other words, \(\text{P}_1\) as replaced by \(\text{P}_2\).
-  
-  We obtained the following results, in terms of the median false alarms per second: 791.84 for the Hand-Crafted feature set, 267.83 for Polynomial, 311.58 for Generic and 497.19 for Raw. We see that all feature sets perform worse than they did in identifying rogue transmitters. That is to be expected, since communication systems are designed to mitigate the effect of the receivers on the transmission signal. The surprising result is that the Generic feature set performs better in this scenario than the Raw feature set, and the Polynomial feature set performs better than both of them. The fact that different feature sets are sensitive to changes in different components of the monitored system could be used to our advantage. An IDS could incorporate different anomaly detectors based on different feature sets. When an anomaly is detected, we could then identify the source of the attack by checking which feature set triggered the alarm.
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=0.5\linewidth, angle=0]{Graphs/fas_rogue_receiver_switch.png}
-    \caption{Comparing the feature sets for identifying a rogue receiver switch.}
-    %\(N = 1\)}
-    \label{fig:receiver_results}
-  \end{figure}
-  
-\sublevel{Identifying an Addition of a Rogue Receiver} \label{IdentifyingAdditionRogueReceiver}
-  In the final series of experiments we simulate an attack, where the adversary connects an additional receiver to the bus. The training stage is the same as the training stage in the previous series of experiments, except that only \(\text{E}_1\) and \(\text{E}_2\) are used as transmitters.
-  
-  In the testing stage, we use measurements taken where a Holt receiver was connected to the bus in addition to the transmitter and receiver from the training stage.
-  
-  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) are labeled as normal and used in the training stage and in the testing stage. Words from rows 2-5 are labeled as anomalies and used in the testing stage.
-  
-  We obtained the following results, in terms of the average false alarms per second: 1368.60 for the Hand-Crafted feature set, 1273.85 for Polynomial, 1152.03 for Generic and 1067.25 for Raw. Note that we used an average instead of a median, since there are only two data points for each feature set (one for \(\text{E}_1\) and one for \(\text{E}_2\)).
-  
-  In this series of experiments all feature sets perform poorly. By comparing the results section \ref{IdentifyingRogueReceiverSwitch} to those of \ref{IdentifyingAdditionRogueReceiver}, we learn that adding a receiver affects the electrical characteristics significantly less than replacing a receiver. This might stem from differences in hardware between the Holt evaluation boards and the proprietary receivers. Switching \(\text{P}_1\) for \(\text{P}_2\) (or vice versa) also means altering a long segment of the transmission line, while connecting an evaluation board receiver is accomplished by connecting two short wires to a header on our fabricated connector board. We interpret the results in the following way: The electrical characteristics are not especially sensitive to the receiver, but rather to the transmission line as a whole.
-  
-  \begin{figure}[t]
-    \centering
-    \includegraphics[width=0.5\linewidth, angle=0]{Graphs/fas_rogue_receiver_add.png}
-    \caption{Comparing the feature sets for identifying a rogue receiver addition.}
-    % \(N = 1\)}
-    \label{fig:load_results}
-  \end{figure}
-
 \level{Modeling the Suspicion Counter} \label{ModelingSuspicionCounter}
   In this section we analyze the effect of the suspicion counter on the overall false alarm rate, using a Markov-chain approach. Let the probability that a word is detected as anomalous be denoted by $p$, and assume that the events of detecting a word as anomalous are i.i.d. 
   Then we can describe the value of the counter after word $i$ arrives as a Markov random process. 
@@ -657,9 +589,20 @@ We do not discuss how to identify an additional receiver, since we could not ide
   
   \begin{figure}[t]
     \centering
-    \includegraphics[width=0.5\linewidth, angle=0]{Graphs/counter_far.png}
-    \caption{FAR as a function of $T_{suspicion}$. $T_{votes} = 100$}
-    \label{fig:counter_far}
+    \begin{subfigure}{0.5\linewidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_far.png}
+      \caption{}
+      \label{fig:counter_far}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\linewidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_tx_rx-attack.png}
+      \caption{}
+      \label{fig:counter_detection_time_rogue_tx}
+      \label{fig:counter_detection_time_rogue_rx}
+    \end{subfigure}
+    \caption{\((a)\) FAR as a function of $T_{suspicion}$ \((b)\) Maximal length of time for detecting an attack. $T_{votes} = 100$}
   \end{figure}
   
   As predicted by the Markov analysis, the false alarm rate drops dramatically as $T_{suspicion}$ increases. For $T_{suspicion}$ greater than 16, there were no false alarms: the empirical results and the Markov analysis are in agreement, and the empirical Figure \ref{fig:counter_far} is similar to the theoretical Figure \ref{fig:CounterTheoreticalFA}. In both the false alarm probability starts at 1, is stable for low values of $T_{suspicion}$, drops quickly and finally decays to 0.
@@ -668,22 +611,6 @@ We do not discuss how to identify an additional receiver, since we could not ide
   
   Figure \ref{fig:counter_detection_time_rogue_tx} shows the maximal (worst case) time we measured for detecting a rogue transmitter over all combinations of guarded and attacking transmitters. Figure \ref{fig:counter_detection_time_rogue_rx} shows the same for detecting a rogue receiver. The blue line indicates a lower bound---the time it takes to transmit $T_{suspicion}$ messages. In our test set the average transmission rate is 610 words per second, which is about 20\% of the maximal available bandwidth.
   
-  \begin{figure}[t]
-    \centering
-    \begin{subfigure}{0.5\linewidth}
-      \centering
-      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_tx-attack.png}
-      \caption{}
-      \label{fig:counter_detection_time_rogue_tx}
-    \end{subfigure}%
-    \begin{subfigure}{0.5\linewidth}
-      \centering
-      \includegraphics[width=1.0\linewidth, angle=0]{Graphs/counter_rogue_rx-attack.png}
-      \caption{}
-      \label{fig:counter_detection_time_rogue_rx}
-    \end{subfigure}
-    \caption{Maximal length of time for detecting \((a)\) a rogue transmitter and \((b)\) a rogue receiver. $T_{votes} = 100$}
-  \end{figure}
   
   The figures show that the suspicion counter reduces false alarms at the expense of only mildly delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
   
@@ -800,6 +727,33 @@ We do not discuss how to identify an additional receiver, since we could not ide
       Down from HI & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
       \hline
       Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
+      \hline
+    \end{tabular}
+  \end{table}
+  
+  \begin{table}
+    \caption{Generic Feature Set}
+    \label{tab:generic_feature_set}
+    \centering
+    \begin{tabular}{|c c|} 
+      \hline
+      Feature & Description \\ [0.5ex] 
+      \hline\hline
+      Mean & \(\mu = \frac{1}{N}\sum_{i=1}^{N}x(i)\) \\
+      \hline
+      Standard Deviation & \(\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2}\) \\
+      \hline
+      Variance & \(\sigma^2 = \frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2\) \\
+      \hline
+      Skewness & \(skew = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^3\) \\
+      \hline
+      Kurtosis & \(kurt = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^4\) \\
+      \hline
+      Root Mean Square & \(rms = \sqrt{\frac{1}{N}\sum_{i=1}^{N}x(i)^2}\) \\
+      \hline
+      Maximum & \(max = max(x(i))_{i=1...N}\) \\
+      \hline
+      Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
       \hline
     \end{tabular}
   \end{table}
