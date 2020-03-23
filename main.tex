@@ -155,11 +155,23 @@
 
 \level{Introduction}
 \sublevel{Background}
-  ARINC 429 \cite{arinc2004arinc429} is a prominent standard for wired intra-vehicle communication in civil aviation. Most active and retired airplanes contain ARINC buses \cite{fuchs2012evolution}, interconnecting the many digital systems that are necessary for the operation of an aircraft: sensors, radars, engines, cockpit controls and more.
+  ARINC 429 \cite{arinc2004arinc429} is a prominent standard for wired intra-vehicle communication in civil aviation since its release in 1977. Most active and retired airplanes contain ARINC buses \cite{fuchs2012evolution}, connecting the many digital systems that are necessary for the operation of an aircraft: sensors, radars, engines, cockpit controls and more.
   
-  Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. Security on the other hand, as we understand it today, was not a primary concern. At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as widespread as it is today. ARINC 429 was designed without any security features, such as encryption or source authentication, that are perceived today as essential to secure communication. In the years that have passed the importance of proper cybersecurity was demonstrated in numerous fields, from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote} to avionics \cite{costin2012ghost}. A recent study \cite{smith2020view} has found that attacks on wireless safety-related avionics systems have the potential of disrupting ongoing flights, inducing financial loss to airlines and reducing safety. In contrast to advancements in cybersecurity, there were no major revisions of the ARINC 429 standard since 1980 \cite{18937420070101}.
+  Safety and reliability are key objectives in avionics \cite{fuchs2012evolution}. 
+  %Therefore, the main requirements of airborne subsystems are high determinism and low response times \cite{thanthry2005aviation}. ARINC 429 was designed accordingly. 
+  Security on the other hand, as we understand it today, was not a primary concern. 
+  %At the time of the protocol's release in 1977, awareness of the threat of cyber-physical attacks was not as widespread as it is today. 
+  ARINC 429 was designed without any security features, such as encryption or source authentication, that are perceived today as essential to secure communication. 
+  %In the years that have passed the importance of proper cybersecurity was demonstrated in numerous fields, 
+  Over the last 10 years, systems of the same vintage have been attacked
+  (cf. \cite{langner2011stuxnet}\cite{miller2015remote}\cite{costin2012ghost}).
+  %from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote} to avionics \cite{costin2012ghost}. 
+  A recent study \cite{smith2020view} has found that attacks on wireless safety-related avionics systems have the potential of disrupting ongoing flights.
+  %, inducing financial loss to airlines and reducing safety. 
+  In contrast to advancements in cybersecurity, there were no major revisions of the ARINC 429 standard since 1980 \cite{18937420070101}.
   
-  AFDX is the successor to ARINC 429. It is Ethernet based, so IPSec or other modern solutions can be applied. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish; it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. It is a proven and extremely reliable technology and thus is also used as fallback network for the AFDX network, e.g. in the Airbus A380.''
+  AFDX is the successor to ARINC 429. It is Ethernet based, so IPSec or other modern solutions can be used. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish;[...] %it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. 
+  It is a proven and extremely reliable technology and thus is also used as fallback network for the AFDX network, e.g. in the Airbus A380.''
   
   In particular, ARINC 429 has no mechanism for source authentication, so once an adversary has gained physical access to bus, any data they transmit will be accepted.
    
@@ -219,12 +231,16 @@
   
   The adversary may have prior knowledge of the hardware and topology of the attacked system. The reverse is not true: As defenders, we have no prior knowledge of what the adversary's hardware might be. However, we do assume that the adversary will use commercial off-the-shelf hardware.
   
-  We only consider attacks, where the adversary changes the hardware that is connected to the bus, as other types of attack do not affect the signal characteristics.
-  
+  We only consider attacks, where the adversary changes the hardware that is connected to the bus, as other types of attack do not affect the signal. %characteristics.
   We distinguish between several types of attacks.
 
 \subsublevel{A Rogue Transmitter}
-  In this type of attack an adversary replaces a legitimate transmitter LRU by a rogue one. During an initial dormant phase of the attack, the new device imitates the behavior of the original transmitter, transmitting data exactly as requested, in order to remain hidden. Only at a later time, the attack moves on to its active phase. During this phase the rogue transmitter LRU sends out messages which are meant to disrupt the work of the system, and in extreme cases causes irreversible damage to the electronic or physical components.
+  In this type of attack an adversary replaces a legitimate transmitter LRU by a rogue one. During an initial dormant phase of the attack, the new device imitates the behavior of the original transmitter, transmitting data exactly as requested, in order to remain hidden. 
+  %Only 
+  At a later time, 
+  %the attack moves on to its active phase. During this phase 
+  the rogue transmitter LRU sends out messages which are meant to disrupt the work of the system.
+  %, and in extreme cases causes irreversible damage to the electronic or physical components.
   
   % DELETE THIS PARAGRAPH?
   % An attacker may or may not posses knowledge of the bus topology - i.e., number of receivers, distances, and models of connected devices. The attacker will try their best to mimic the characteristics of the original transmitter. In the most case for the defenders, the attacker will use a transmitter which is identical (same manufacturer and model) to the compromised transmitter. (True statement? It is theoretically possible to use a massive signal generator, or maybe a dedicated device that can adjust itself to the real transmitter).
@@ -234,14 +250,16 @@
 
 \subsublevel{Adding a Transmitter or Converting a Receiver to a Transmitter}
   An attack wherein the adversary adds another transmitter LRU to the bus, without detaching the legitimate transmitter, is actually not possible to perform on the ARINC bus. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus irreparably violates the electrical properties of the system. Therefore, an adversary cannot simply add a transmitter (built from off-the-shelf components) to the bus. 
-  The adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, an adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, for example by disconnecting the legitimate transmitter during transmissions of the rogue transmitter, but the fact remains that standard commercial components would not suffice.
+  %The adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. 
+  %In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, 
+  An adversary may possibly construct special hardware that would allow the bus to function with two or more transmitters, 
+  %for example by disconnecting the legitimate transmitter during transmissions of the rogue transmitter, 
+  but the fact remains that standard commercial components would not suffice.
 
   Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by hijacking its software, since the LRU's wiring does not permit it. 
  
 \level{The Data Set} \label{TheDataSet}
-  To the best of our knowledge, there is no publicly available data set that contains high rate voltage samples of ARINC 429 protocol. We gathered our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.
-  
-  We sampled two types of transmitters:
+  To the best of our knowledge, there is no publicly available data set that contains high rate voltage samples of ARINC 429 protocol. We gathered our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.   We sampled two types of transmitters:
   \begin{enumerate}
      \item An M4K429RTx test equipment from \textit{Excalibur Systems} \cite{excalibur2019m4k429rtx}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
      \item ADK-3220 Evaluation boards, manufactured by \textit{Holt Integrated Circuits INC.} \cite{holt2019evaluation}. The board contains a HI-3220PQ ARINC 429 Protocol IC connected to 8 HI-8597PSIFF line drivers chips. We use 4 of the transmitters and two different boards. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
@@ -255,15 +273,15 @@
   
   For sampling we used a Keysight DSO9254A scope. All signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
   
-  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
+%  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
   
-  \begin{figure}[t]
-    \centering
+%  \begin{figure}[t]
+%    \centering
     %Use 1 for the two columns
-    \includegraphics[width=0.5\linewidth, angle=0]{Images/setup_3}
-    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
-    \label{fig:SetupImage}
-  \end{figure}
+%    \includegraphics[width=0.5\linewidth, angle=0]{Images/setup_3}
+%    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
+%    \label{fig:SetupImage}
+%  \end{figure}
   
   All the devices transmitted the same data at a bit rate of 100 Kbits/sec. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Note that these words include all the possible segment types. By transmitting the same data on all devices we make sure that in our experiments the IDS cannot unintentionally use the message content to make its decisions.
   
@@ -295,9 +313,10 @@
 \sublevel{Anomaly Detection per Segment}
   Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}). A segment's characteristics depend on its type. Therefore, we opted to train a different anomaly detector for each type of segment.
   
-  Anomaly detection, sometimes called novelty detection, is a well-established. There are numerous outlier and anomaly detection algorithms available in the literature such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. An extensive review of various algorithms is presented in \cite{pimentel2014review}.
-  
-  For the anomaly detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better than other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} Python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this \iftoggle{paper} {paper} {work}.
+%  sometimes called novelty detection, is a well-established. 
+There are numerous outlier and anomaly detection algorithms available in the literature. % such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. 
+An extensive review of various algorithms is presented in \cite{pimentel2014review}.
+For the anomaly detection task, we chose to work with the Local Outlier Factor (LOF) by Breunig et al.\ \cite{breunig2000lof}. LOF was shown to work better than other algorithms for the task of network intrusion detection\cite{lazarevic2003comparative}. This fact, together with the available scikit-learn \cite{scikit-learn} Python implementation, made it an appealing choice. Comparing different anomaly detection algorithms is beyond the scope of this \iftoggle{paper} {paper} {work}.
   
   LOF is a density-based outlier detection algorithm. According to the LOF algorithm, an outlier is defined as a data point (feature vector), whose local density is greater than the average of local densities of its neighbors by a large enough margin. A local density of a data point is the inverse of the average distance of the point from its neighbors.
   
@@ -316,7 +335,7 @@
 \level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
-  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and on the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all, we identified 10 different segment types, as listed in Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}).
+  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and on the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all, we identified 10 different segment types, see Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}).
   
   Thus, we split every 32-bit word into 127 segments. Note that there are only 127 segments, not 128, because the last bit is followed by a long ``NULL'' that lasts until the next word and has a unique shape. We do not associate this segment with any word.
   
@@ -345,12 +364,14 @@
   In our work we compare the performance of the feature sets described below.
  
 {\bf Raw Time-Domain Samples.}
-  This feature set consists of the raw vector of sequential voltage samples. The only additional operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes} (Appendix \ref{appendix:Tables}). At the sample rate we use (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24 in the same table. This makes the Raw feature set a practical choice.
+  This feature set consists of the raw vector of sequential voltage samples. The only %additional 
+  operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes} (Appendix \ref{appendix:Tables}). At the sample rate we use (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24. %in the same table. 
+  This makes the Raw feature set a practical choice.
   
 {\bf Generic Time-Domain Feature Set.}
   As discussed in Section \ref{RelatedWork}, in recent years a number of papers suggested using extracted features to perform hardware fingerprinting \cite{dey2014accelprint, choi2018identifying, choi2018voltageids, kneib2018scission}. They all utilized time-domain features such as mean, standard deviation, skewness etc., with good results.
   
-  These features are of a generic nature, in the sense that the shape of the signal does not affect the extraction process. Due to this property, it is possible to apply the same features in different fields of research.
+%  These features are of a generic nature, in the sense that the shape of the signal does not affect the extraction process. Due to this property, it is possible to apply the same features in different fields of research.
   
   We use the features that were presented in \cite{kneib2018scission} as our Generic set. Six of the eight features in this feature set are used in all four cited papers. The features we used are listed in Table \ref{tab:generic_feature_set} (Appendix \ref{appendix:Tables}).
   
@@ -452,9 +473,9 @@
   A transition to the right indicates that a word was detected as an anomaly, and a transition to the left indicates that a word was detected as normal. 
   The counter cannot be decreased below the initial value of 0. The state for $i = T_{suspicion}$ is a final state indicating that an alarm is raised.
   
-  \begin{figure}
+  \begin{figure}[t]
   \centering
-  \begin{adjustbox}{width=\columnwidth}
+  \begin{adjustbox}{width=0.7\columnwidth}
   \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,thick,
                       main node/.style={circle,draw,font=\sffamily\Large\bfseries},
                       skip node/.style={font=\sffamily\Large\bfseries}]
