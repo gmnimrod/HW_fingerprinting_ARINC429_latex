@@ -168,13 +168,13 @@
   %from industrial networks \cite{langner2011stuxnet} to cars \cite{miller2015remote} to avionics \cite{costin2012ghost}. 
   A recent study \cite{smith2020view} has found that attacks on wireless safety-related avionics systems have the potential of disrupting ongoing flights.
   %, inducing financial loss to airlines and reducing safety. 
-  In contrast to advancements in cybersecurity, there were no major revisions of the ARINC 429 standard since 1980 \cite{18937420070101}.
+  % [NGM-2]
+  In contrast to advancements in cybersecurity, there were no major revisions of the ARINC 429 standard since 1980 \cite{18937420070101}. There is a successor to ARINC 429 - AFDX. However, it is likely that ARINC 429 will continue to serve for many years in older aircrafts and alongside the new protocol in newer aircrafts \cite{fuchs2012evolution}.
+  % AFDX is the successor to ARINC 429. It is Ethernet based, so IPSec or other modern solutions can be used. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish;[...] %it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. 
+  % It is a proven and extremely reliable technology and thus is also used as fallback network for the AFDX network, e.g. in the Airbus A380.''
   
-  AFDX is the successor to ARINC 429. It is Ethernet based, so IPSec or other modern solutions can be used. Still, to quote from \cite{fuchs2012evolution}: ``[...] 429 will most likely not simply vanish;[...] %it will still be used in scenarios where simple signaling is sufficient, and in latency critical scenarios. 
-  It is a proven and extremely reliable technology and thus is also used as fallback network for the AFDX network, e.g. in the Airbus A380.''
-  
-  % [NGM]
-  In particular, ARINC 429 has no mechanism for source authentication.
+  % [NGM-2]
+  A major concern is that ARINC 429 has no mechanism for source authentication.
   % , so once an adversary has gained physical access to bus, any data they transmit will be accepted.
   One way to add authentication without an industry-wide update of the protocol is to implement it at a higher layer of the protocol stack. Unfortunately, in ARINC 429 there are only 19 data bits in a message. This is typically insufficient for a secure implementation of message code authentication (MAC).
   
@@ -245,8 +245,8 @@
   We only consider attacks, where the adversary changes the hardware that is connected to the bus, as other types of attack do not affect the signal. %characteristics.
   We distinguish between several types of attacks.
 
-\vspace*{-1ex} %[AW]
-\subsublevel{A Rogue Transmitter}
+  % [NGM-2]
+  \textbf{A Rogue Transmitter}
   In this type of attack an adversary replaces a legitimate transmitter LRU by a rogue one. During an initial dormant phase of the attack, the new device imitates the behavior of the original transmitter, transmitting data exactly as requested, in order to remain hidden. 
   %Only 
   % [NGM]
@@ -259,10 +259,12 @@
   % DELETE THIS PARAGRAPH?
   % An attacker may or may not posses knowledge of the bus topology - i.e., number of receivers, distances, and models of connected devices. The attacker will try their best to mimic the characteristics of the original transmitter. In the most case for the defenders, the attacker will use a transmitter which is identical (same manufacturer and model) to the compromised transmitter. (True statement? It is theoretically possible to use a massive signal generator, or maybe a dedicated device that can adjust itself to the real transmitter).
 
-\subsublevel{A Rogue Receiver}
+  % [NGM-2]
+  \textbf{A Rogue Receiver}
   In this attack type of attack the adversary replaces a legitimate receiver LRU by a rogue one, or adds a rogue receiver LRU without detaching another LRU. By doing this the adversary gains access to the transmitted data, which might be otherwise inaccessible, and may use this data to cause harm through another attack channel.
 
-\subsublevel{Adding a Transmitter or Converting a Receiver to a Transmitter}
+  % [NGM-2]
+  \textbf{Adding a Transmitter or Converting a Receiver to a Transmitter}
   An attack wherein the adversary adds another transmitter LRU to the bus, without detaching the legitimate transmitter, is actually not possible to perform on the ARINC bus. The ARINC 429 bus is designed to allow exactly one transmitter LRU. Connecting two transmitters to the same bus irreparably violates the electrical properties of the system. Therefore, an adversary cannot simply add a transmitter (built from off-the-shelf components) to the bus. 
   %The adversary needs to make sure that the legitimate transmitter is disconnected before connecting the rogue transmitter. Otherwise, there is a risk that data will fail to be delivered. 
   %In fact, when we naively connected two transmitters to the same bus, the peak to peak voltage dropped by half, and the legitimate communication on the bus failed. While we don't assert that this will always be the case, it serves as a cautionary anecdote for adversaries. Further, 
@@ -293,7 +295,8 @@
   %For sampling we used a Keysight DSO9254A scope.
   Using a Keysight DSO9254A scope, all signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
   
-%  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
+  % [NGM-2]
+  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (see Figure \ref{fig:SetupImage}).
   
 %  \begin{figure}[t]
 %    \centering
@@ -761,6 +764,7 @@
   \end{table}
 
   \begin{table}
+  \begin{minipage}{0.5\textwidth}
     \caption{Distribution of Recorded Words in the Data Set}
     \label{tab:RecordingsSummery}
     \centering
@@ -821,9 +825,8 @@
       26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
       \hline
     \end{tabular}
-    \end{table}
-    
-    \begin{table}
+  \end{minipage}
+  \begin{minipage}{0.5\textwidth}
     \caption{Generic Feature Set}
     \label{tab:generic_feature_set}
     \centering
@@ -848,7 +851,17 @@
       Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
       \hline
     \end{tabular}
+  \end{minipage}
   \end{table}
+  
+  % [NGM-2]
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth, angle=0]{Images/setup_3}
+    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
+    \label{fig:SetupImage}
+  \end{figure}
+  
 
 % if thesis report then English abstract is after bibliography
 \iftoggle{paper}{
