@@ -531,7 +531,7 @@
   %the task of
   labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
   
-  Our experimental results regarding the identification of a rogue receiver switch, and identification of an addition of a rogue receiver, have been omitted due to space constraints. The results can be found in our full technical report \cite{}
+  Our experimental results regarding the identification of a rogue receiver switch, and identification of an addition of a rogue receiver, have been omitted due to space constraints. The results can be found in our full technical report \cite{}.
   
 \level{Modeling the Suspicion Counter} \label{ModelingSuspicionCounter}
   In this section we analyze the effect of the suspicion counter on the overall false alarm rate, using a Markov-chain approach. Let the probability that a word is detected as anomalous be denoted by $p$, and assume that the events of detecting a word as anomalous are i.i.d. 
@@ -693,8 +693,40 @@
 
 \appendix
 
+\newpage
 \section{Tables} \label{appendix:Tables}
 
+  \begin{table}
+    \caption{Voltage Thresholds per Segment Type}
+    \label{tab:SegmentationLevels}
+    \centering
+    \begin{tabular}{|c c c|} 
+      \hline
+      Segment & Starting Threshold & Ending Threshold \\ [0.5ex] 
+      \hline\hline
+      LO & falls below $-V_{h_1}$ & rises above $-V_{h_2}$ \\
+      \hline
+      HI & rises above $V_{h_1}$ & falls below $V_{h_2}$ \\
+      \hline
+      NULL, HI to HI & falls below $V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      NULL, HI to LO & falls below $V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      NULL, LO to LO & rises above $-V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      NULL, LO to HI & rises above $-V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      Up from LO & rises above $-V_{h_2}$ & rises above $-V_{l_1}$ \\
+      \hline
+      Up from NULL & rises above $V_{l_2}$ & rises above $V_{h_1}$ \\
+      \hline
+      Down from HI & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
+      \hline
+      Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
+      \hline
+    \end{tabular}
+  \end{table}
+  
   \begin{table}
     \caption{Number of Features per Segment Type}
     \label{tab:feature_set_sizes}
@@ -729,7 +761,6 @@
   \end{table}
 
   \begin{table}
-  \begin{minipage}{0.5\textwidth}
     \caption{Distribution of Recorded Words in the Data Set}
     \label{tab:RecordingsSummery}
     \centering
@@ -790,8 +821,9 @@
       26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
       \hline
     \end{tabular}
-  \end{minipage}%
-  \begin{minipage}{0.5\textwidth}
+    \end{table}
+    
+    \begin{table}
     \caption{Generic Feature Set}
     \label{tab:generic_feature_set}
     \centering
@@ -814,38 +846,6 @@
       Maximum & \(max = max(x(i))_{i=1...N}\) \\
       \hline
       Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
-      \hline
-    \end{tabular}
-  \end{minipage}
-  \end{table}
-
-  \begin{table}
-    \caption{Voltage Thresholds per Segment Type}
-    \label{tab:SegmentationLevels}
-    \centering
-    \begin{tabular}{|c c c|} 
-      \hline
-      Segment & Starting Threshold & Ending Threshold \\ [0.5ex] 
-      \hline\hline
-      LO & falls below $-V_{h_1}$ & rises above $-V_{h_2}$ \\
-      \hline
-      HI & rises above $V_{h_1}$ & falls below $V_{h_2}$ \\
-      \hline
-      NULL, HI to HI & falls below $V_{l_1}$ & rises above $V_{l_2}$ \\
-      \hline
-      NULL, HI to LO & falls below $V_{l_1}$ & falls below $-V_{l_2}$ \\
-      \hline
-      NULL, LO to LO & rises above $-V_{l_1}$ & falls below $-V_{l_2}$ \\
-      \hline
-      NULL, LO to HI & rises above $-V_{l_1}$ & rises above $V_{l_2}$ \\
-      \hline
-      Up from LO & rises above $-V_{h_2}$ & rises above $-V_{l_1}$ \\
-      \hline
-      Up from NULL & rises above $V_{l_2}$ & rises above $V_{h_1}$ \\
-      \hline
-      Down from HI & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
-      \hline
-      Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
       \hline
     \end{tabular}
   \end{table}
