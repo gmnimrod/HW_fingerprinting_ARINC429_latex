@@ -217,7 +217,7 @@
   In order to drive the false-alarms-per-second rate to zero, we suggest to augment the per-word anomaly detection by a ``suspicion counter'' that increases with each word flagged as an anomaly, and decreases with every normal word. We first analyze the suspicion counter using a Markov-chain model, and then evaluate the full system's performance using the empirical data. 
   We demonstrate that our intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
-  
+\vspace*{-1ex} %[AW]  
 \level{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
 % [NGM]
@@ -235,7 +235,8 @@
   The protocol allows a choice of one of two bit rates: Slow, at 12.0 to 14.5 Kbits/sec, and fast, at 100 Kbits/sec. The bit rate on a bus is fixed and maintained within \%1. The signal is self-clocking.
   
   MIL-STD-1553 \cite{united1986milstd1553} is the military bus standard alternative of ARINC 429.
-  
+
+\vspace*{-2ex} %[AW]
 \sublevel{The Adversary Model}
   Our method is designed to guard against ``technician attacks''. This type of attack involves an adversary that has brief physical access to the system. Such an adversary is able to replace LRUs or add new ones to the bus.
   
@@ -244,6 +245,7 @@
   We only consider attacks, where the adversary changes the hardware that is connected to the bus, as other types of attack do not affect the signal. %characteristics.
   We distinguish between several types of attacks.
 
+\vspace*{-1ex} %[AW]
 \subsublevel{A Rogue Transmitter}
   In this type of attack an adversary replaces a legitimate transmitter LRU by a rogue one. During an initial dormant phase of the attack, the new device imitates the behavior of the original transmitter, transmitting data exactly as requested, in order to remain hidden. 
   %Only 
@@ -270,15 +272,18 @@
 
   Furthermore, it is not possible to turn a receiver LRU into a transmitter LRU by hijacking its software, since the LRU's wiring does not permit it. 
  
+ \vspace*{-2ex} %[AW]
 \level{The Data Set} \label{TheDataSet}
   To the best of our knowledge, there is no publicly available data set that contains high rate voltage samples of ARINC 429 protocol. We gathered our own data set, with the kind assistance of \textit{Astronautics C.A. LTD.} \cite{astronautics2019home}.   We sampled two types of transmitters:
   \begin{enumerate}
+   \vspace*{-1ex} %[AW]
      \item An M4K429RTx test equipment from \textit{Excalibur Systems} \cite{excalibur2019m4k429rtx}. The Excalibur equipment hosts two transmitters which we label \(\text{E}_1\) and \(\text{E}_2\).
      \item ADK-3220 Evaluation boards, manufactured by \textit{Holt Integrated Circuits INC.} \cite{holt2019evaluation}. The board contains a HI-3220PQ ARINC 429 Protocol IC connected to 8 HI-8597PSIFF line drivers chips. We use 4 of the transmitters and two different boards. We label the transmitters \(\text{H}_{xy}\), where x is the board number, 1 or 2, and y is the transmitter number from 0 to 3.
   \end{enumerate}
   
-  The transmitters were connected to one or more of the following receivers:
+  \noindent The transmitters were connected to one or more of the following receivers:
   \begin{enumerate}
+   \vspace*{-1ex} %[AW]
     \item An EDCU, a proprietary device manufactured by \textit{Astronautics C.A. LTD.} \cite{astronautics2019edcu}. The device has 2 receivers which we label \(\text{P}_1\) and \(\text{P}_2\).
     % [NGM]
     \item The ADK-3220 Evaluation boards also host 16 integrated line receivers. We use 2 of the ports with the 2 boards. We label the receivers the same way as the transmitters with \(\text{H}_{xy}\) (x is the board number, y is the receiver number).
@@ -306,8 +311,28 @@
   In addition to the recordings from different transmitter-receiver pairs, we recorded \(\text{E}_1\) and \(\text{E}_2\) transmitting to \(\text{P}_1\) and \(\text{P}_2\) respectfully, with different Holt devices attached as additional receivers.
   
   Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
-  
+
+
+  \begin{figure}[t]
+    \centering
+    \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Traces/bits.png}
+      \caption{}
+      \label{fig:word_example}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=1.0\linewidth, angle=0]{Traces/segmentation.png}
+      \caption{}
+      \label{fig:SegmentationTrace}
+    \end{subfigure}
+    \caption{\((a)\) ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal \((b)\) A segmentation example of the bits 01. The trace exhibits all 4 up/down transitions, the ``HI'' and ``LO'' plateaus, and 3 of the 4 possible ``NULL'' segment types}
+  \end{figure}
+
+\vspace*{-2ex} %[AW]  
 \level{The Hardware Fingerprinting Approach} \label{Approach}
+\vspace*{-1ex} %[AW]  
   The fingerprinting IDS we propose has to be attached to the bus it is guarding. During a training period it samples the bus and learns the transmitter LRU's characteristics. We assume that during this time only legitimate devices are present on the bus. We further assume that access to the IDS is restricted;
   % [NGM]
   %, so that
@@ -315,11 +340,14 @@
   % [NGM]
   %During these pre-flight operations the changes to the bus can be detected, even if the transmitter LRU is sending normal data.
   During the pre-flight operations changes to the bus can be detected, even if the transmitter LRU is sending normal data.
-  
+
+\vspace*{-2ex} %[AW]   
 \sublevel{IDS Overview} \label{Overview}
+\vspace*{-1ex} %[AW]   
   We will next describe our proposed method of anomaly detection. We divide the algorithm into several stages. This section provides an overview of these steps. In the subsequent sections selected stages are explained in greater detail as needed.
   
   \begin{enumerate}
+  \vspace*{-1ex} %[AW]   
     \item \textbf{[Acquisition]}
           We sample both lines of the bus at a sampling rate that is 50 times higher than the bit rate. We used a sample rate of 5 MSa/s. The differential signal is obtained by subtracting the samples of line B from the samples of line A.
     \item \textbf{[Segmentation]}
@@ -335,6 +363,7 @@
           We keep a counter of anomalous words. The counter is increased by 1 when a word is marked as an ``anomaly'', and decreased by 1  to a minimum of 0 when a word is marked as ``normal''. Once the counter reaches a threshold of $T_{suspicion}$ an alarm is raised.
           %We keep a counter of anomalous words. When a word is declared as an ``anomaly'', the counter is increased by 1, and when a word is declared as ``normal'', the counter is decreased by 1, to a minimum of 0. Once the counter reaches a threshold of $T_{suspicion}$ an alarm is raised.
   \end{enumerate}
+
   
 \sublevel{Anomaly Detection per Segment}
   Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}). A segment's characteristics depend on its type. Therefore, we opted to train a different anomaly detector for each type of segment.
@@ -359,6 +388,8 @@
   
 \sublevel{Voting}
   We gather the decisions made by the different LOF detectors for all segments of the same word. The number of segments that have been identified as normal is subjected to a voting threshold $T_{votes}$. If it does not exceed $T_{votes}$, the word is flagged as an ``anomaly'', otherwise, it is flagged as ``normal''.
+
+
   
 \sublevel{Suspicion Counter}
   According to our adversary model, an attacker tampers with the system only once. Therefore, we expect the true label of all words in the incoming stream to be identical---either all the words originate from the original system, or all the words originate from a compromised system. We utilize this attack model to reduce the probability of making an error. Taking note from \cite{kneib2018scission} we incorporate an anomaly counter, which we name the suspicion counter.
@@ -376,22 +407,7 @@
   
   Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}) shows the voltage levels used for each segment type. Figure \ref{fig:SegmentationTrace} shows an example of word segmentation.
   
-  \begin{figure}[t]
-    \centering
-    \begin{subfigure}{0.5\textwidth}
-      \centering
-      \includegraphics[width=1.0\linewidth, angle=0]{Traces/bits.png}
-      \caption{}
-      \label{fig:word_example}
-    \end{subfigure}%
-    \begin{subfigure}{0.5\textwidth}
-      \centering
-      \includegraphics[width=1.0\linewidth, angle=0]{Traces/segmentation.png}
-      \caption{}
-      \label{fig:SegmentationTrace}
-    \end{subfigure}
-    \caption{\((a)\) ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal \((b)\) A segmentation example of the bits 01. The trace exhibits all 4 up/down transitions, the ``HI'' and ``LO'' plateaus, and 3 of the 4 possible ``NULL'' segment types}
-  \end{figure}
+
   
 \level{Feature Sets} \label{FeatureSets}
   In our work we compare the performance of the feature sets described below.
@@ -461,7 +477,7 @@
   
   We repeat this process for four feature sets with all pairs of guarded transmitter and receiver. We end up with 18 experiments per feature set.
   
-  The results are presented as a box plot in Figure \ref{fig:rogue_transmitter_results}. The x axis splits the results according to the used feature set. The y axis shows the false alarms per second.
+  The results are presented as a box plot in Figure \ref{fig:rogue_transmitter_results}. The x axis splits the results according to the used feature set. The y axis shows the false alarms per second:
   % [NGM]
   %and
   0 is the perfect score. The horizontal line in the middle of the box and the number written next to it indicate the median. The bottom and top boundaries of the box indicate the 1st and 3rd quartiles respectively. The horizontal lines outside of the box (the whiskers) indicate the minimum and maximum values.
@@ -662,8 +678,8 @@
   %from one another
   for them to generate distinguishable signals. All the more so when dealing with devices from different vendors. We found that skipping the feature extraction stage and using the raw signal achieves the best result.
   
-  % [NGM]
-  We showed that the method can also detect a switched receiver and that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance among the feature sets we examined for this task.
+  % [AW]
+  In our full technical report \cite{} we showed that the method can also detect a switched receiver and that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance among the feature sets we examined for this task.
 
   We showed that by augmenting the per-word anomaly detection by a ``suspicion counter'', we can drastically reduce the false-alarm rate. Using both a Markov-chain analysis and an extensive empirical evaluation, we demonstrated that our full intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
