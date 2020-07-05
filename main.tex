@@ -451,10 +451,7 @@
   
 \level{Detection based on a Single Word} \label{PerformanceEvaluationSingleWord}
 \sublevel{Methodology} \label{Methodology}
-  In order to evaluate the performance of our algorithm, we performed an extensive series of experiments. In each experiment we selected one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we selected a group of other devices as rogue devices. Their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary.
-  
-  % [NGM]
-  In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. Anomaly-labeled measurements are not present in the training set.
+  We evaluated the performance of our algorithm with an extensive series of experiments spanning over 125,000 recorded words from 12 transmitters. In each experiment we selected one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we selected a group of other devices as rogue devices. Their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary. In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. Anomaly-labeled measurements are not present in the training set.
   %The measurements labeled as anomalies are not present in the training set.
   
   For the purpose of comparing the different feature sets, we set $T_{suspicion} = 1$. We then run our algorithm and calculate the false alarm and misdetection rates (FAR \& MDR respectively) as functions of $T_{votes}$. Next, we find the equal error rate (EER), the rate at which the FAR equals the MDR. The EER is the metric we use for comparing different hyper-parameters.
