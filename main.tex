@@ -189,6 +189,7 @@
 %   \color{black}
 %   \textcolor{gray}{(Should we address lack of authentication here (in addition to mentioning it in the motivation section)?)}
 
+\vspace*{-1ex}
 \sublevel{Related Work} \label{RelatedWork}
   To the best of our knowledge, this is the first academic research to suggest hardware fingerprinting in ARINC 429. However, hardware fingerprinting was explored previously in a number of different domains: Ethernet \cite{kohno2005remote, uluagac2013passive, gerdes2012physical}; wireless radio \cite{ellis2001characteristics, brik2008wireless, xu2015device}; smartphone accelerometers, gyroscopes, microphones and cameras \cite{dey2014accelprint, das2016tracking}.
   
@@ -200,7 +201,8 @@
   In recent years a number of successful cyber-attacks were demonstrated on cars \cite{miller2015remote}, motivating researchers to search for new ways to hinder attacks. A number of papers demonstrate the use of hardware fingerprints for detecting changes in hardware: \cite{murvay2014source}, \cite{cho2017viden}, \cite{choi2018voltageids}, \cite{kneib2018scission}.
   
   CAN bus and ARINC 429 use different line protocols and have different attack models, therefore methods presented in the above papers cannot be directly applied to our problem without change. They can, however, serve as a starting point for ARINC 429 hardware fingerprinting.
-  
+
+\vspace*{-1ex} 
 \sublevel{Contributions}
   We propose the use of hardware fingerprinting in order to imbue ARINC 429 buses with source authentication capabilities. Applying the method only requires the attachment of a standard-compliant monitoring unit to the bus. This method does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
   
@@ -218,12 +220,15 @@
   In order to drive the false-alarms-per-second rate to zero, we suggest to augment the per-word anomaly detection by a ``suspicion counter'' that increases with each word flagged as an anomaly, and decreases with every normal word. We first analyze the suspicion counter using a Markov-chain model, and then evaluate the full system's performance using the empirical data. 
   We demonstrate that our intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
   
-\vspace*{-1ex} %[AW]  
+\vspace*{-1.5ex} %[AW]  
 \level{Preliminaries} \label{Preliminaries}
 % stuff we didn't invent or discover but the reader needs to know
 % [NGM]
+\vspace*{-1ex} %[AW]  
 \sublevel{The ARINC 429 Standard}
-  ARINC Specification 429 \cite{arinc2004arinc429} or ``Mark 33 Digital Transfer System (DITS)'', is a standard of the avionics industry. It defines a protocol for the communication between avionics system elements over a local area network. First published in 1977 by Aeronautical Radio, Inc., it has since become one of the most widely used data bus protocols in civil aircrafts \cite{MoirIan2013DBN}. The protocol encompasses different layers: from the physical requirements, through the electronic characteristics of the signal, data format and ending with a file transfer technique.
+  ARINC Specification 429 \cite{arinc2004arinc429} or ``Mark 33 Digital Transfer System (DITS)'', is a standard of the avionics industry. It defines a protocol for the communication between avionics system elements over a local area network. First published in 1977 by Aeronautical Radio, Inc., it has since become one of the most widely used data bus protocols in civil aircrafts \cite{MoirIan2013DBN}. The protocol encompasses different layers: from the physical requirements, through the electronic characteristics of the signal, data format and ending with a file transfer technique.  
+ %[AW] save a line and a bib entry
+ %citation MIL-STD-1553 \cite{united1986milstd1553} is the military bus standard alternative of ARINC 429.
 
   % [NGM]
   % We continue with a short description of those parts of the specifications, which are relevant to this \iftoggle{paper} {paper} {work}.
@@ -235,7 +240,6 @@
    
   The protocol allows a choice of one of two bit rates: Slow, at 12.0 to 14.5 Kbits/sec, and fast, at 100 Kbits/sec. The bit rate on a bus is fixed and maintained within \%1. The signal is self-clocking.
   
-  MIL-STD-1553 \cite{united1986milstd1553} is the military bus standard alternative of ARINC 429.
   
   \begin{figure}[t]
     \centering
@@ -310,7 +314,7 @@
   \begin{figure}[t]
     \centering
     \includegraphics[width=0.8\linewidth, angle=0]{Images/setup_3}
-    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
+    \caption{The Holt evaluation board and the fabricated connector board}
     \label{fig:SetupImage}
   \end{figure}
   
@@ -600,8 +604,10 @@
     \end{tabular}
     }
   \end{table}
-  
+
+\vspace*{-1ex}  
 \level{Detection based on a Single Word} \label{PerformanceEvaluationSingleWord}
+\vspace*{-1ex}
 \sublevel{Methodology} \label{Methodology}
   We evaluated the performance of our algorithm with an extensive series of experiments spanning over 125,000 recorded words from 12 transmitters. In each experiment we selected one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we selected a group of other devices as rogue devices. Their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary. In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. Anomaly-labeled measurements are not present in the training set.
   %The measurements labeled as anomalies are not present in the training set.
@@ -613,8 +619,10 @@
   \[FA/Sec = \frac{1}{MTBF} = EER \cdot \frac{100 \sfrac{Kbits}{sec}}{36bits}\]
   
   Note that since the FA/Sec is linear in the EER, we can discuss the graphs as though they display the EER when giving a qualitative analysis.
-  
+
+\vspace*{-1.5ex}  
 \sublevel{Identifying a Rogue Transmitter}
+\vspace*{-0.5ex}  
   In this series of experiments we simulate an attack, where the adversary switches the guarded transmitter LRU by a rogue transmitter LRU. In each experiment we designate one of the transmitters as the legitimate device to be guarded. In addition, we choose one receiver, either \(\text{P}_1\) or \(\text{P}_2\).  We train our IDS to identify samples from the chosen Tx-Rx pair as normal.
   
   We then test the trained IDS. We simulate a rogue transmitter LRU by using measurements of other transmitters connected to the chosen receiver as anomalies. We remind the reader that during each measurement, only one transmitter is connected to the bus.
@@ -682,7 +690,8 @@
   labeling rogue transmitters as anomalies heavily depends on the uniqueness of the guarded device.
   
   Our experimental results regarding the identification of a rogue receiver switch, and identification of an addition of a rogue receiver, have been omitted due to space constraints. The results can be found in our full technical report \cite{gilboa-markevich2020hardware}.
-  
+
+\vspace*{-1ex}    
 \level{Modeling the Suspicion Counter} \label{ModelingSuspicionCounter}
   In this section we analyze the effect of the suspicion counter on the overall false alarm rate, using a Markov-chain approach. Let the probability that a word is detected as anomalous be denoted by $p$, and assume that the events of detecting a word as anomalous are i.i.d. 
   Then we can describe the value of the counter after word $i$ arrives as a Markov random process. 
@@ -775,12 +784,11 @@
   Figure \ref{fig:CounterTheoreticalFA} shows the probability of a false alarm occurring during a 10-hour flight as a function of $T_{suspicion}$ for different values of $p$. We assume an average transmission rate of 610 words per second, which is about 20\% of the maximal available bandwidth. This is the rate used in our data set. We can see that for every value of $p$, if $T_{suspicion}$ is high enough, the false alarm rate probability drops to 0. The lower $p$ is, the minimal $T_{suspicion}$ that is required is lower. Interestingly, even for a very high single-word false alarm probability of 40\%, at a $T_{suspicion}$ value of just 50 the probability of a false alarm drops to 0.
    
   Figure \ref{fig:CounterTheoreticalTime} show the time it takes for the probability for a positive (anomaly) detection to reach 99.999\%. Here all the transmitted words are assumed to originate from a rogue system, therefore we set $p > 0.5$. A low detection time means that the system is quick at detecting the adversary. The figure shows that the time until detection rises as $T_{suspicion}$ rises. The rise is quicker for low values of $p$. Even so, with a very poor detection probability of $p = 0.6$ and $T_{suspicion} = 100$, (which is much more than the threshold required to bring the false alarm rate to near 0), the time until detection reaches only 2 seconds. So, we can see from the Markov model that using a suspicion counter drastically reduces the false alarm rate, while slowing down the detection only mildly.
-   
+
+\vspace*{-1ex}  
 \level{Performance of the Complete Method} \label{PerformanceEvaluationCompleteMethod}
 
-  The results we attained in Section \ref{PerformanceEvaluationSingleWord} are encouraging: we can successfully fingerprint a transmitter based on a single word. However, the FA/Sec metric of around 5 alarms per second is still too high for a realistic system. To reduce the FA/Sec rate to near-zero, we use the suspicion counter we analyzed in Section~\ref{ModelingSuspicionCounter}, and raise an alarm only when the counter exceeds $T_{suspicion}$. In this section we empirically evaluate the behavior of the complete system as a function of the threshold $T_{suspicion}$.
-  
-% [AW] repetitive      We examine how the performance can be improved when we increase $T_{suspicion}$, factoring into our detector's decisions information from more than one word.  
+  The results we attained in Section \ref{PerformanceEvaluationSingleWord} are encouraging: we can successfully fingerprint a transmitter based on a single word. However, the FA/Sec metric of around 5 alarms per second is still too high for a realistic system. To reduce the FA/Sec rate to near-zero, we use the suspicion counter we analyzed in Section~\ref{ModelingSuspicionCounter}, and raise an alarm only when the counter exceeds $T_{suspicion}$. In this section we empirically evaluate the behavior of the complete system as a function of the threshold. % $T_{suspicion}$.
   We do not discuss how to identify an additional receiver, since we could not identify it with sufficient certainty in Section \ref{PerformanceEvaluationSingleWord}.
   
   In Section \ref{PerformanceEvaluationSingleWord} we saw that different feature sets are suited for detecting different adversary models; the Raw feature set for detecting a rogue transmitter, and the Polynomial feature set for detecting a rogue receiver. We now continue our evaluation with these two feature sets.
@@ -819,7 +827,8 @@
   The figures show that the suspicion counter reduces false alarms at the expense of only mildly delaying the detection of an attack. We find the trade-off worthwhile. Even when $T_{suspicion} = 20$ and there are no false alarms, a rogue transmitter is detected in under 50ms, which greatly reduces the adversaries ability to mount a successful attack, and a rogue receiver is detected in several seconds, which is still good.
   
   In both cases, the maximal observed detection time rises faster than lower bound. For rogue transmitter detection, the maximal time is of the same order of magnitude of as the lower bound, while for the case of rogue receiver detection, the maximal time is an order of magnitude higher. The gap is explained by the difference in misdetection rates for single words, measured in section \ref{PerformanceEvaluationSingleWord}. The difference between the slopes is predicted by the Markov analysis. Figure \ref{fig:CounterTheoreticalTime} shows that as the misdetection rate of a single word increases, so does the rate at which the detection time rises.
-  
+
+\vspace*{-1ex}    
 \level{Conclusions} \label{Conclusions}
   We presented a first hardware fingerprinting method for the ARINC 429 bus. The method can be used to retrofit source authentication into existing avionic systems with low effort.
   
@@ -837,11 +846,12 @@
   
   ARINC 429 lacks essential security features. It is a safety liability that is present today in almost every civil aircraft.
   Our method could help close the gap between ARINC 429 and modern security requirements. Thus, we argue that it is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
- 
-\subsection*{Acknowledgments}
-This work was supported in part by a grant from the Interdisciplinary Cyber Research Center at Tel Aviv University.
-The authors would like to thank Astronautics C.A. LTD. sharing their equipment and expert knowledge.
 
+\vspace*{0.5ex}
+\noindent{\bf Acknowledgments} This work was supported in part by a grant from the Interdisciplinary Cyber Research Center at Tel Aviv University.
+The authors would like to thank Astronautics C.A.\ LTD.\ for sharing their equipment and expert knowledge.
+
+\vspace*{-1ex}
 \bibliographystyle{splncs04.bst}
 \bibliography{biblio} 
 
