@@ -236,6 +236,14 @@
   The protocol allows a choice of one of two bit rates: Slow, at 12.0 to 14.5 Kbits/sec, and fast, at 100 Kbits/sec. The bit rate on a bus is fixed and maintained within \%1. The signal is self-clocking.
   
   MIL-STD-1553 \cite{united1986milstd1553} is the military bus standard alternative of ARINC 429.
+  
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\linewidth, angle=0]{Traces/bits.png}
+    \caption{ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal}
+    \label{fig:word_example}
+    \centering
+  \end{figure}
 
 \vspace*{-2ex} %[AW]
 \sublevel{The Adversary Model}
@@ -297,15 +305,14 @@
   Using a Keysight DSO9254A scope, all signals were sampled at 50Msa/s at a scope bandwidth of 25MHz. The probes are 500MHz, 10M\(\Omega\), 11pF. Each line was sampled individually. We further downsampled digitally by a factor of 10 to a rate of 5 MSa/s using a 30 point FIR filter with Hamming window.
   
   % [NGM-2]
-  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (Figure \ref{fig:SetupImage} Appendix \ref{appendix:Tables}).
+  The transmitters and receivers were connected through a custom board that exposes the wires, which we fabricated for this purpose (Figure \ref{fig:SetupImage}).
   
-%  \begin{figure}[t]
-%    \centering
-    %Use 1 for the two columns
-%    \includegraphics[width=0.5\linewidth, angle=0]{Images/setup_3}
-%    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
-%    \label{fig:SetupImage}
-%  \end{figure}
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=0.8\linewidth, angle=0]{Images/setup_3}
+    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
+    \label{fig:SetupImage}
+  \end{figure}
   
   All the devices transmitted the same data at a bit rate of 100 Kbits/sec. 6 values of words were transmitted. Interpreting the words with MSB-first transmission order, the values are: \texttt{0x00000000}, \texttt{0xFFFFFFFF}, \texttt{0x55555555}, \texttt{0xAAAAAAAA}, \texttt{0x5A5A5A5A}, \texttt{0xA5A5A5A5}. Note that these words include all the possible segment types. By transmitting the same data on all devices we ensure that
   % [NGM]
@@ -314,25 +321,71 @@
   
   In addition to the recordings from different transmitter-receiver pairs, we recorded \(\text{E}_1\) and \(\text{E}_2\) transmitting to \(\text{P}_1\) and \(\text{P}_2\) respectfully, with different Holt devices attached as additional receivers.
   
-  Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
+  Table \ref{tab:RecordingsSummery} shows the different combinations of transmitter-receiver in our data set, and the number of words recorded for each combination.
 
-  \begin{figure}[t]
+  \begin{table}[t]
+    \caption{Distribution of Recorded Words in the Data Set}
+    \label{tab:RecordingsSummery}
     \centering
-    \begin{subfigure}{0.5\textwidth}
-      \centering
-      \includegraphics[width=1.0\linewidth, angle=0]{Traces/bits.png}
-      \caption{}
-      \label{fig:word_example}
-    \end{subfigure}%
-    \begin{subfigure}{0.5\textwidth}
-      \centering
-      \includegraphics[width=1.0\linewidth, angle=0]{Traces/segmentation.png}
-      \caption{}
-      \label{fig:SegmentationTrace}
-    \end{subfigure}
-    \caption{\((a)\) ARINC 429 bus showing the voltage difference between twisted pair for bits 0101. Counter-clockwise starting from the top left: Line A, Line B, the differential signal \((b)\) A segmentation example of the bits 01. The trace exhibits all 4 up/down transitions, the ``HI'' and ``LO'' plateaus, and 3 of the 4 possible ``NULL'' segment types}
-  \end{figure}
-
+    \begin{tabular}{|c | c c c|} 
+      \hline
+      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
+      \hline\hline
+      1 & \(\text{E}_1\) & \(\text{P}_1\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      2 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      3 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      4 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      5 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      6 & \(\text{H}_{10}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      7 & \(\text{H}_{11}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      8 & \(\text{H}_{12}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      9 & \(\text{H}_{13}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      10 & \(\text{H}_{20}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      11 & \(\text{H}_{21}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      12 & \(\text{H}_{22}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      13 & \(\text{H}_{23}\) & \(\text{P}_1\) & 4920 \\
+      \hline
+      14 & \(\text{E}_2\) & \(\text{P}_2\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
+      \hline
+      15 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{10}\) & 4920 \\
+      \hline
+      16 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{12}\) & 4920 \\
+      \hline
+      17 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{20}\) & 4920 \\
+      \hline
+      18 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{22}\) & 4920 \\
+      \hline
+      19 & \(\text{H}_{10}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      20 & \(\text{H}_{11}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      21 & \(\text{H}_{12}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      22 & \(\text{H}_{13}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      23 & \(\text{H}_{20}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      24 & \(\text{H}_{21}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      25 & \(\text{H}_{22}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+      26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
+      \hline
+    \end{tabular}
+  \end{table}
+    
 \vspace*{-2ex} %[AW]  
 \level{The Hardware Fingerprinting Approach} \label{Approach}
 \vspace*{-1ex} %[AW]  
@@ -369,7 +422,7 @@
 
   
 \sublevel{Anomaly Detection per Segment}
-  Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}). A segment's characteristics depend on its type. Therefore, we opted to train a different anomaly detector for each type of segment.
+  Our basic building block uses per-segment anomaly detection. As we shall see there are 10 types of segments, as detailed in Table \ref{tab:SegmentationLevels}. A segment's characteristics depend on its type. Therefore, we opted to train a different anomaly detector for each type of segment.
   
   %  sometimes called novelty detection, is a well-established. 
   There are numerous outlier and anomaly detection algorithms available in the literature. % such as K-Nearest Neighbors \cite{hautamaki2004outlier}, Mixture Models \cite{paalanen2006feature}, One-Class SVM \cite{scholkopf2000support} and Isolation Forest \cite{liu2008isolation}. 
@@ -402,20 +455,59 @@
 \level{Signal Segmentation} \label{SignalSegmentation}
   Our method aims to rely solely on the physical characteristics of the hardware, and aims to be completely agnostic to the transmitted data. In order to achieve this goal, we divide each word into sub-bit non-overlapping segments.
   
-  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and on the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all, we identified 10 different segment types, see Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}).
+  In a BRTZ line protocol, each bit comprises of 4 distinct segments. For example, a `1' bit starts with a transition up from ``NULL'' to ``HI'', then a plateau on ``HI'', then a transition down from ``HI'' back to ``NULL'', and finally a ``NULL'' plateau. Furthermore, we observed 4 different variants of ``NULL'', depending on the current and on the next bit. E.g., a ``NULL'' between two `1' bits tends to be ``smile''-shaped, while a ``NULL'' between two `0' bits has a ``frown'' shape. All in all, we identified 10 different segment types, see Table \ref{tab:SegmentationLevels}.
   
   Thus, we split every 32-bit word into 127 segments. Note that there are only 127 segments, not 128, because the last bit is followed by a long ``NULL'' that lasts until the next word and has a unique shape. We do not associate this segment with any word.
   
   The segmentation is performed in the following manner. A segment starts where the voltage level of the signal rises above / falls below a certain threshold, and ends where it falls below / rises above another threshold. 4 different thresholds are employed in order to produce a stabling hysteresis effect. We denote them as follows, and use them and their negative to define segment boundaries: \(V_{l_1} = 2.0V\), \(V_{l_2} = 2.8V\), \(V_{h_1} = 8.0V\), \(V_{h_2} = 7.2V\)
   
-  Table \ref{tab:SegmentationLevels} (Appendix \ref{appendix:Tables}) shows the voltage levels used for each segment type. Figure \ref{fig:SegmentationTrace} shows an example of word segmentation.
+  Table \ref{tab:SegmentationLevels} shows the voltage levels used for each segment type. Figure \ref{fig:SegmentationTrace} shows an example of word segmentation.
+  
+  \begin{table}[t]
+    \caption{Voltage Thresholds per Segment Type}
+    \label{tab:SegmentationLevels}
+    \centering
+    \begin{tabular}{|c c c|} 
+      \hline
+      Segment & Starting Threshold & Ending Threshold \\ [0.5ex] 
+      \hline\hline
+      LO & falls below $-V_{h_1}$ & rises above $-V_{h_2}$ \\
+      \hline
+      HI & rises above $V_{h_1}$ & falls below $V_{h_2}$ \\
+      \hline
+      NULL, HI to HI & falls below $V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      NULL, HI to LO & falls below $V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      NULL, LO to LO & rises above $-V_{l_1}$ & falls below $-V_{l_2}$ \\
+      \hline
+      NULL, LO to HI & rises above $-V_{l_1}$ & rises above $V_{l_2}$ \\
+      \hline
+      Up from LO & rises above $-V_{h_2}$ & rises above $-V_{l_1}$ \\
+      \hline
+      Up from NULL & rises above $V_{l_2}$ & rises above $V_{h_1}$ \\
+      \hline
+      Down from HI & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
+      \hline
+      Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
+      \hline
+    \end{tabular}
+  \end{table}
+  
+  \begin{figure}[t]
+  \centering
+    \includegraphics[width=0.5\linewidth, angle=0]{Traces/segmentation.png}
+    \caption{}
+    \label{fig:SegmentationTrace}
+    \caption{A segmentation example of the bits 01. The trace exhibits all 4 up/down transitions, the ``HI'' and ``LO'' plateaus, and 3 of the 4 possible ``NULL'' segment types}
+  \end{figure}
   
 \level{Feature Sets} \label{FeatureSets}
   In our work we compare the performance of the feature sets described below.
  
 {\bf Raw Time-Domain Samples.}
   This feature set consists of the raw vector of sequential voltage samples. The only %additional 
-  operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes} (Appendix \ref{appendix:Tables}). At the sample rate we use (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24. %in the same table. 
+  operation we perform after segmentation is truncating the segments to a common length, since the LOF algorithm expects all data points to be vectors of the same dimension. The length varies depending on the segment type, as shown in Table \ref{tab:feature_set_sizes}. At the sample rate we use (recall Section \ref{Overview}) the number of samples per segment is quite low - between 4-24. %in the same table. 
   This makes the Raw feature set a practical choice.
   
 {\bf Generic Time-Domain Feature Set.}
@@ -423,7 +515,34 @@
   
 %  These features are of a generic nature, in the sense that the shape of the signal does not affect the extraction process. Due to this property, it is possible to apply the same features in different fields of research.
   
-  We use the features that were presented in \cite{kneib2018scission} as our Generic set. Six of the eight features in this feature set are used in all four cited papers. The features we used are listed in Table \ref{tab:generic_feature_set} (Appendix \ref{appendix:Tables}).
+  We use the features that were presented in \cite{kneib2018scission} as our Generic set. Six of the eight features in this feature set are used in all four cited papers. The features we used are listed in Table \ref{tab:generic_feature_set}.
+  
+  \begin{table}[t]
+    \caption{Generic Feature Set}
+    \label{tab:generic_feature_set}
+    \centering
+    \begin{tabular}{|c c|} 
+      \hline
+      Feature & Description \\ [0.5ex] 
+      \hline\hline
+      Mean & \(\mu = \frac{1}{N}\sum_{i=1}^{N}x(i)\) \\
+      \hline
+      Standard Deviation & \(\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2}\) \\
+      \hline
+      Variance & \(\sigma^2 = \frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2\) \\
+      \hline
+      Skewness & \(skew = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^3\) \\
+      \hline
+      Kurtosis & \(kurt = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^4\) \\
+      \hline
+      Root Mean Square & \(rms = \sqrt{\frac{1}{N}\sum_{i=1}^{N}x(i)^2}\) \\
+      \hline
+      Maximum & \(max = max(x(i))_{i=1...N}\) \\
+      \hline
+      Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
+      \hline
+    \end{tabular}
+  \end{table}
   
   In addition to time-domain features, the cited papers also employ frequency-domain features. We do not use frequency-domain features in this \iftoggle{paper} {paper} {work}. We argue that the non-periodic nature of the signals, that are the result of our segmentation method, does not benefit from frequency analysis.
 
@@ -449,6 +568,39 @@
   
   The segments ``NULL, LO to HI'' and ``NULL, HI to LO'' do not participate: not all segments of these types in the data set contain an overshoot.
   
+  \begin{table}
+    \caption{Number of Features per Segment Type}
+    \label{tab:feature_set_sizes}
+    \centering
+    \resizebox{\columnwidth}{!}{
+    \begin{tabular}{|c c c c c c|}
+      \hline
+      Segment & Segment Length & Raw & Generic & Polynomial & Hand-Crafted \\ [0.5ex]
+      \hline\hline
+      LO & 20-24 & 20 & 8 & 7 & 10 \\
+      \hline
+      HI & 20-23 & 20 & 8 & 7 & 10 \\
+      \hline
+      NULL, HI to HI & 17-22 & 17 & 8 & 7 & 2 \\
+      \hline
+      NULL, HI to LO & 17-21 & 17 & 8 & 8 & 0 \\
+      \hline
+      NULL, LO to LO & 17-22 & 17 & 8 & 7 & 2 \\
+      \hline
+      NULL, LO to HI & 17-21 & 17 & 8 & 8 & 0 \\
+      \hline
+      Up from LO & 4-6 & 4 & 8 & 3 & 2 \\
+      \hline
+      Up from NULL & 4-6 & 4 & 8 & 3 & 2 \\
+      \hline
+      Down from HI & 4-5 & 4 & 8 & 3 & 2 \\
+      \hline
+      Down from NULL & 4-5 & 4 & 8 & 3 & 2 \\
+      \hline
+    \end{tabular}
+    }
+  \end{table}
+  
 \level{Detection based on a Single Word} \label{PerformanceEvaluationSingleWord}
 \sublevel{Methodology} \label{Methodology}
   We evaluated the performance of our algorithm with an extensive series of experiments spanning over 125,000 recorded words from 12 transmitters. In each experiment we selected one transmitter LRU as a guarded device. Its measurements are labeled as normal, indicating the legitimate state where the adversary has not yet tampered with the system. In each experiment we selected a group of other devices as rogue devices. Their measurements are labeled as anomalies, representing the state of the system after it was changed by an adversary. In all cases we used a train-test split of 60\%-40\% of the measurements labeled as normal. Anomaly-labeled measurements are not present in the training set.
@@ -469,7 +621,7 @@
   
   Only the Holt devices were used to simulate rogue transmitters, regardless of whether the guarded transmitter is an Excalibur (\(\text{E}_1\) or \(\text{E}_2\)) or a Holt (\(\text{H}_{10}\), ..., \(\text{H}_{13}\), \(\text{H}_{20}\), ..., \(\text{H}_{23}\)).
   
-  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} (Appendix \ref{appendix:Tables}) are labeled as normal and used in the training stage and in the testing stage. Words from rows 6-13 are labeled as anomalies and used in the testing stage.
+  For example, if we choose \(\text{E}_1\) as the guarded transmitter and \(\text{P}_1\) as the receiver, words from row 1 in Table \ref{tab:RecordingsSummery} are labeled as normal and used in the training stage and in the testing stage. Words from rows 6-13 are labeled as anomalies and used in the testing stage.
   
   We repeat this process for all possible values of $T_{votes}$ (0-127) while keeping $T_{suspicion} = 1$. For each value of $T_{votes}$ we indicate the MDR and the FAR. From these values we obtain the EER and the FA/sec.
   
@@ -691,177 +843,6 @@ This work was supported in part by a grant from the Interdisciplinary Cyber Rese
 
 \bibliographystyle{splncs04.bst}
 \bibliography{biblio} 
-
-\appendix
-\renewcommand\thefigure{\Roman{figure}}
-\setcounter{figure}{0}
-
-\newpage
-\section{Tables and Images} \label{appendix:Tables}
-
-  \begin{table}
-    \caption{Voltage Thresholds per Segment Type}
-    \label{tab:SegmentationLevels}
-    \centering
-    \begin{tabular}{|c c c|} 
-      \hline
-      Segment & Starting Threshold & Ending Threshold \\ [0.5ex] 
-      \hline\hline
-      LO & falls below $-V_{h_1}$ & rises above $-V_{h_2}$ \\
-      \hline
-      HI & rises above $V_{h_1}$ & falls below $V_{h_2}$ \\
-      \hline
-      NULL, HI to HI & falls below $V_{l_1}$ & rises above $V_{l_2}$ \\
-      \hline
-      NULL, HI to LO & falls below $V_{l_1}$ & falls below $-V_{l_2}$ \\
-      \hline
-      NULL, LO to LO & rises above $-V_{l_1}$ & falls below $-V_{l_2}$ \\
-      \hline
-      NULL, LO to HI & rises above $-V_{l_1}$ & rises above $V_{l_2}$ \\
-      \hline
-      Up from LO & rises above $-V_{h_2}$ & rises above $-V_{l_1}$ \\
-      \hline
-      Up from NULL & rises above $V_{l_2}$ & rises above $V_{h_1}$ \\
-      \hline
-      Down from HI & falls below $V_{h_2}$ & falls below $V_{l_1}$ \\
-      \hline
-      Down from NULL & falls below $-V_{l_2}$ & falls below $-V_{h_1}$ \\
-      \hline
-    \end{tabular}
-  \end{table}
-  
-  \begin{table}
-    \caption{Number of Features per Segment Type}
-    \label{tab:feature_set_sizes}
-    \centering
-    \resizebox{\columnwidth}{!}{
-    \begin{tabular}{|c c c c c c|}
-      \hline
-      Segment & Segment Length & Raw & Generic & Polynomial & Hand-Crafted \\ [0.5ex]
-      \hline\hline
-      LO & 20-24 & 20 & 8 & 7 & 10 \\
-      \hline
-      HI & 20-23 & 20 & 8 & 7 & 10 \\
-      \hline
-      NULL, HI to HI & 17-22 & 17 & 8 & 7 & 2 \\
-      \hline
-      NULL, HI to LO & 17-21 & 17 & 8 & 8 & 0 \\
-      \hline
-      NULL, LO to LO & 17-22 & 17 & 8 & 7 & 2 \\
-      \hline
-      NULL, LO to HI & 17-21 & 17 & 8 & 8 & 0 \\
-      \hline
-      Up from LO & 4-6 & 4 & 8 & 3 & 2 \\
-      \hline
-      Up from NULL & 4-6 & 4 & 8 & 3 & 2 \\
-      \hline
-      Down from HI & 4-5 & 4 & 8 & 3 & 2 \\
-      \hline
-      Down from NULL & 4-5 & 4 & 8 & 3 & 2 \\
-      \hline
-    \end{tabular}
-    }
-  \end{table}
-
-  \begin{table}
-  \begin{minipage}{0.5\textwidth}
-    \caption{Distribution of Recorded Words in the Data Set}
-    \label{tab:RecordingsSummery}
-    \centering
-    \begin{tabular}{|c | c c c|} 
-      \hline
-      Row \# & Transmitter & Receiver & \#Words \\ [0.5ex] 
-      \hline\hline
-      1 & \(\text{E}_1\) & \(\text{P}_1\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      2 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{10}\) & 4920 \\
-      \hline
-      3 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{12}\) & 4920 \\
-      \hline
-      4 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{20}\) & 4920 \\
-      \hline
-      5 & \(\text{E}_1\) & \(\text{P}_1\) \& \(\text{H}_{22}\) & 4920 \\
-      \hline
-      6 & \(\text{H}_{10}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      7 & \(\text{H}_{11}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      8 & \(\text{H}_{12}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      9 & \(\text{H}_{13}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      10 & \(\text{H}_{20}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      11 & \(\text{H}_{21}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      12 & \(\text{H}_{22}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      13 & \(\text{H}_{23}\) & \(\text{P}_1\) & 4920 \\
-      \hline
-      14 & \(\text{E}_2\) & \(\text{P}_2\) & 4920 \\ % There are actually 9840, but I use half to keep a balanced data set.
-      \hline
-      15 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{10}\) & 4920 \\
-      \hline
-      16 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{12}\) & 4920 \\
-      \hline
-      17 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{20}\) & 4920 \\
-      \hline
-      18 & \(\text{E}_2\) & \(\text{P}_2\) \& \(\text{H}_{22}\) & 4920 \\
-      \hline
-      19 & \(\text{H}_{10}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      20 & \(\text{H}_{11}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      21 & \(\text{H}_{12}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      22 & \(\text{H}_{13}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      23 & \(\text{H}_{20}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      24 & \(\text{H}_{21}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      25 & \(\text{H}_{22}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-      26 & \(\text{H}_{23}\) & \(\text{P}_2\) & 4920 \\
-      \hline
-    \end{tabular}
-  \end{minipage}
-  \begin{minipage}{0.5\textwidth}
-    \caption{Generic Feature Set}
-    \label{tab:generic_feature_set}
-    \centering
-    \begin{tabular}{|c c|} 
-      \hline
-      Feature & Description \\ [0.5ex] 
-      \hline\hline
-      Mean & \(\mu = \frac{1}{N}\sum_{i=1}^{N}x(i)\) \\
-      \hline
-      Standard Deviation & \(\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2}\) \\
-      \hline
-      Variance & \(\sigma^2 = \frac{1}{N}\sum_{i=1}^{N}(x(i)-\mu)^2\) \\
-      \hline
-      Skewness & \(skew = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^3\) \\
-      \hline
-      Kurtosis & \(kurt = \frac{1}{N} \sum_{i=1}^{N}(\frac{x(i)-\mu}{\sigma})^4\) \\
-      \hline
-      Root Mean Square & \(rms = \sqrt{\frac{1}{N}\sum_{i=1}^{N}x(i)^2}\) \\
-      \hline
-      Maximum & \(max = max(x(i))_{i=1...N}\) \\
-      \hline
-      Energy & \(en = \frac{1}{N}\sum_{i=1}^{N}x(i)^2\) \\
-      \hline
-    \end{tabular}
-  \end{minipage}
-  \end{table}
-  
-  % [NGM-2]
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.8\linewidth, angle=0]{Images/setup_3}
-    \caption{The Holt evaluation board on the left, and the fabricated connector board on the right}
-    \label{fig:SetupImage}
-  \end{figure}
-  
 
 % if thesis report then English abstract is after bibliography
 \iftoggle{paper}{
