@@ -206,7 +206,7 @@
 \sublevel{Contributions}
   We propose the use of hardware fingerprinting in order to imbue ARINC 429 buses with source authentication capabilities. Applying the method only requires the attachment of a standard-compliant monitoring unit to the bus. This method does not require hardware or software updates to existing systems and is compliant with the current version of the ARINC standard.
   
-  We describe the adversary models that our method is effective at protecting against. We then design an intrusion detection system with hardware fingerprinting capabilities, and evaluate its performance in these attack scenarios.
+  We describe the adversary models that our method is effective at protecting against. We then design a preliminary intrusion detection system with hardware fingerprinting capabilities, and evaluate its performance in these attack scenarios.
   
   % [NGM] - removed duplicate sentence
   We explore the ability to distinguish between devices
@@ -217,8 +217,8 @@
   
   We compare different feature sets under different the adversarial models. Somewhat surprisingly, we find that using the raw samples, without extracting any features, yields the best outcome when detecting a transmitter switch. In case of a receiver switch, we find that features derived from a polynomial fit outperform the other feature set.
   
-  In order to drive the false-alarms-per-second rate to zero, we suggest to augment the per-word anomaly detection by a ``suspicion counter'' that increases with each word flagged as an anomaly, and decreases with every normal word. We first analyze the suspicion counter using a Markov-chain model, and then evaluate the full system's performance using the empirical data. 
-  We demonstrate that our intrusion detection system is quite realistic: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
+  In order to drive the false-alarms-per-second rate to zero, we suggest to augment the per-word anomaly detection by a ``suspicion counter'' that increases with each word flagged as an anomaly, and decreases with every normal word. We first analyze the suspicion counter using a Markov-chain model, and then evaluate the performance of the combined system using the empirical data. 
+  In this experimental work, our intrusion detection system achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds. In other words, an intrusion detection system could potentially be used to detect attacks can detected during the pre-flight checks, well before the aircraft takes off.
   
 \vspace*{-1.5ex} %[AW]  
 \level{Preliminaries} \label{Preliminaries}
