@@ -3,15 +3,15 @@ Despite this, the protocol lacks any form of source authentication.
 A technician with physical access to the bus is able to replace a transmitter by a rogue device, and receivers will accept its malicious data as they have no method of verifying the authenticity of messages.
 
 Updating the protocol would close off security loopholes in new aircraft but would require thousands of airplanes to be modified.
-For the interim, another solution is required.
-We propose the first hardware fingerprinting method for the ARINC 429 data bus, and analyze its performance in a sender verification setting.
+An interim solution is required.
+We propose a hardware fingerprinting method for the ARINC 429 data bus, and analyze its performance in a sender authentication setting.
 Our approach relies on the observation that changes in hardware, such as replacing a transmitter or a receiver with a rogue one, modify the electric signal of the transmission. 
 
-In this \iftoggle{paper} {paper} {work} we describe the design of an experimental intrusion detection system and evaluate its performance against different adversary models.
+In this \iftoggle{paper} {paper} {work} we explore the feasibility of designing an intrusion detection system based on hardware fingerprinting.
 Our analysis includes both a theoretical Markov-chain model and an extensive empirical evaluation.
 For this purpose, we collected a data corpus of ARINC 429 data traces, which may be of independent interest since, to the best of our knowledge, no public corpus is available.
 
-In our experiments, the intrusion detection system achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds.
-In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off, avoiding the complexity of mitigating attacks mid-flight.
+In our experiments, we show that it is feasible for an intrusion detection system to achieve a near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds.
+This would allow a rogue component installed by a malicious technician to be detected during the pre-flight checks, well before the aircraft takes off.
 This is made possible due to the fact that we rely on the analog properties, and not on the digital content of the transmissions.
 Thus we are able to detect a hardware switch as soon as it occurs, even if the data that is being transmitted is completely normal.

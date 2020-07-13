@@ -830,7 +830,7 @@
 
 \vspace*{-1ex}    
 \level{Conclusions} \label{Conclusions}
-  We presented a first hardware fingerprinting method for the ARINC 429 bus.
+  We presented a hardware fingerprinting method for the ARINC 429 bus.
   The method can be used to retrofit source authentication into existing avionic systems with low effort, since it does not require modifications to existing components.
   
   We showed that our method is especially effective for identifying a technician attack, in which an adversary replaces a legitimate LRU with a rogue one.
@@ -841,15 +841,13 @@
   In our full technical report \cite{gilboa-markevich2020hardware} we showed that the method can also detect a switched receiver and that the Polynomial feature set, which was conceived for the purpose of this \iftoggle{paper} {paper} {work}, achieves the best performance among the feature sets we examined for this task.
 
   We showed that by augmenting the per-word anomaly detection by a ``suspicion counter'', we can drastically reduce the false-alarm rate.
-  Using both a Markov-chain analysis and an extensive empirical evaluation, we show that our full intrusion detection system satisfies realistic demands: e.g., it achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds.
-  In other words, technician attacks can be reliably detected during the pre-flight checks, well before the aircraft takes off.
+  Using both a Markov-chain analysis and an extensive empirical evaluation, we showed that an intrusion detection system based on hardware fingerprinting could potentially be used to detect hardware changes during pre-flight checks, well before the aircraft takes off. In our experiments, a preliminary intrusion detection system achieves near-zero false alarms per second, while detecting a rogue transmitter in under 50ms, and detecting a rogue receiver in under 3 seconds.
   
   Further research is required in order to evaluate the sensitivity of the hardware fingerprints to external changes such as fluctuations in temperature or supply voltage levels, and to evaluate its stability over time.
   
   ARINC 429 lacks essential security features.
   It is a safety liability that is present today in almost every civil aircraft.
-  Our method could help close the gap between ARINC 429 and modern security requirements.
-  Thus, we argue that it is a valuable addition to the protection of any airborne system which uses the ARINC 429 bus.
+  Our hardware fingerprinting method could help close the gap between ARINC 429 and modern security requirements.
 
 \vspace*{0.5ex}
 \noindent{\bf Acknowledgments} This work was supported in part by a grant from the Interdisciplinary Cyber Research Center at Tel Aviv University.
